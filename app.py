@@ -15,28 +15,28 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;900&family=Archivo+Narrow:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-  --pink:    #f11075;
-  --pink-lt: #fff0f5;
-  --pink-md: #ffd6e7;
   --bg:      #ffffff;
-  --bg2:     #fafafa;
-  --bg3:     #f4f4f6;
-  --bdr:     #e8e8ed;
-  --bdr2:    #d4d4db;
-  --txt:     #0f0f14;
-  --txt2:    #3a3a4a;
-  --muted:   #8a8a9a;
-  --green:   #00b96b;
-  --red:     #f11075;
-  --orange:  #f97316;
-  --yellow:  #eab308;
-  --blue:    #2563eb;
+  --bg2:     #f7f6f3;
+  --bg3:     #eeede9;
+  --bdr:     #e2e1dc;
+  --bdr2:    #d0cfc9;
+  --txt:     #1a1a18;
+  --txt2:    #3d3d38;
+  --muted:   #8c8c84;
+  --muted2:  #b8b8b0;
+  --accent:  #f11075;
+  --green:   #2d6a4f;
+  --green-lt:#d8f3dc;
+  --red:     #c0392b;
+  --red-lt:  #fde8e8;
+  --orange:  #d35400;
+  --blue:    #2c3e7a;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body,
 [data-testid="stAppViewContainer"],
@@ -44,350 +44,237 @@ html, body,
 section[data-testid="stMain"] > div {
   background: var(--bg) !important;
   color: var(--txt) !important;
-  font-family: 'Archivo', sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 [data-testid="stSidebar"] {
   background: var(--bg2) !important;
   border-right: 1px solid var(--bdr) !important;
 }
-[data-testid="stSidebar"] * { color: var(--txt) !important; }
-[data-testid="stSidebar"] h3 {
-  font-family: 'Archivo', sans-serif !important;
-  font-weight: 700 !important;
-  font-size: .85rem !important;
-  letter-spacing: .5px !important;
-  text-transform: uppercase !important;
-  color: var(--muted) !important;
-}
+[data-testid="stSidebar"] * { color: var(--txt) !important; font-family: 'Inter', sans-serif !important; }
 
-.block-container { padding: 2rem 2.5rem !important; max-width: 100% !important; }
-hr { border-color: var(--bdr) !important; }
+.block-container { padding: 2.5rem 3rem !important; max-width: 100% !important; }
+hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; }
 
 [data-testid="stTextInput"] input {
-  background: var(--bg) !important;
-  border: 1px solid var(--bdr2) !important;
-  border-radius: 6px !important;
-  color: var(--txt) !important;
-  font-family: 'Archivo Narrow', sans-serif !important;
-  font-size: .85rem !important;
+  background: var(--bg) !important; border: 1px solid var(--bdr2) !important;
+  border-radius: 4px !important; color: var(--txt) !important;
+  font-family: 'Inter', sans-serif !important; font-size: .83rem !important;
 }
-[data-testid="stTextInput"] input:focus {
-  border-color: var(--pink) !important;
-  box-shadow: 0 0 0 3px rgba(241,16,117,.1) !important;
-}
+[data-testid="stTextInput"] input:focus { border-color: var(--accent) !important; outline: none !important; box-shadow: none !important; }
 
 [data-testid="stButton"] > button {
-  background: var(--bg) !important;
-  border: 1.5px solid var(--bdr2) !important;
-  color: var(--txt2) !important;
-  font-family: 'Archivo Narrow', sans-serif !important;
-  font-size: .8rem !important;
-  font-weight: 600 !important;
-  border-radius: 6px !important;
-  transition: all .15s !important;
+  background: var(--bg) !important; border: 1px solid var(--bdr2) !important;
+  color: var(--txt2) !important; font-family: 'Inter', sans-serif !important;
+  font-size: .78rem !important; font-weight: 500 !important; border-radius: 4px !important;
+  transition: all .12s !important;
 }
-[data-testid="stButton"] > button:hover {
-  border-color: var(--pink) !important;
-  color: var(--pink) !important;
-  background: var(--pink-lt) !important;
-}
+[data-testid="stButton"] > button:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
 [data-testid="stButton"] > button[kind="primary"] {
-  background: var(--pink-lt) !important;
-  border-color: var(--pink) !important;
-  color: var(--pink) !important;
-  font-weight: 700 !important;
+  background: var(--txt) !important; color: var(--bg) !important;
+  border-color: var(--txt) !important;
 }
 
-/* multiselect */
-[data-baseweb="tag"] {
-  background: var(--pink-lt) !important;
-  border: 1px solid var(--pink-md) !important;
-}
-[data-baseweb="tag"] span { color: var(--pink) !important; }
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--bdr2); border-radius: 2px; }
 
-/* slider */
-[data-testid="stSlider"] [data-baseweb="slider"] div[role="slider"] {
-  background: var(--pink) !important;
-  border-color: var(--pink) !important;
-}
-
-/* ── HEADER ─────────────────────────── */
-.farol-header {
+/* ── HEADER ─── */
+.pg-header {
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--bdr);
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  padding-bottom: 1.4rem;
-  margin-bottom: 1.6rem;
-  border-bottom: 2px solid var(--txt);
+  align-items: flex-start;
 }
-.header-left { display: flex; flex-direction: column; gap: 4px; }
-.farol-eyebrow {
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .68rem;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--pink);
-}
-.farol-title {
-  font-family: 'Archivo', sans-serif;
-  font-size: 2rem;
-  font-weight: 900;
-  letter-spacing: -1px;
+.pg-title {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -.5px;
   color: var(--txt);
-  line-height: 1;
+  line-height: 1.1;
+  margin-bottom: 6px;
 }
-.farol-sub {
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .8rem;
+.pg-sub {
+  font-size: .82rem;
   color: var(--muted);
-  margin-top: 2px;
+  font-weight: 400;
 }
 .upill {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: var(--bg3);
-  border: 1px solid var(--bdr2);
-  border-radius: 20px;
-  padding: 5px 14px;
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .72rem;
-  font-weight: 600;
-  color: var(--muted);
-  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: .72rem; color: var(--muted); white-space: nowrap; margin-top: 6px;
 }
-.dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--green); display: inline-block;
-  animation: pulse 2.5s infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulse 2.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-/* ── KPI STRIP ──────────────────────── */
+/* ── KPI STRIP ─── */
 .kpi-strip {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-  margin-bottom: 2rem;
+  gap: 0;
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
 }
 .kpi {
-  background: var(--bg2);
-  border: 1px solid var(--bdr);
-  border-radius: 10px;
-  padding: 14px 16px 12px;
-  border-left: 4px solid var(--bdr2);
-  transition: transform .15s, box-shadow .15s;
+  padding: 16px 20px 14px;
+  border-right: 1px solid var(--bdr);
+  background: var(--bg);
 }
-.kpi:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,.06);
-}
+.kpi:last-child { border-right: none; }
 .kpi-lbl {
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .65rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 6px;
+  font-size: .65rem; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 5px;
 }
+.kpi-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .kpi-val {
-  font-family: 'Archivo', sans-serif;
-  font-size: 2rem;
-  font-weight: 900;
-  line-height: 1;
-  color: var(--txt);
+  font-family: 'Libre Baskerville', serif;
+  font-size: 2.2rem; font-weight: 700; line-height: 1; color: var(--txt);
 }
-.kpi.c-red    { border-left-color: var(--red);    }
-.kpi.c-ora    { border-left-color: var(--orange);  }
-.kpi.c-red2   { border-left-color: #ef4444;        }
-.kpi.c-grn    { border-left-color: var(--green);   }
-.kpi.c-yel    { border-left-color: var(--yellow);  }
-.kpi.c-blu    { border-left-color: var(--blue);    }
-.kpi.c-mut    { border-left-color: var(--bdr2);    }
+.kpi-val.zero { color: var(--muted2); }
 
-/* ── CHART ──────────────────────────── */
-.chart-wrap {
-  background: var(--bg2);
-  border: 1px solid var(--bdr);
-  border-radius: 12px;
-  padding: 22px 26px;
-  margin-bottom: 1.8rem;
+/* ── NAV TABS (chips) ─── */
+.nav-bar {
+  display: flex; gap: 0; border-bottom: 1px solid var(--bdr);
+  margin-bottom: 1.8rem; overflow-x: auto;
 }
+.nav-item {
+  padding: 8px 16px 10px;
+  font-size: .8rem; font-weight: 500; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: all .12s; user-select: none;
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: -1px;
+}
+.nav-item:hover { color: var(--txt); }
+.nav-item.active { color: var(--txt); border-bottom-color: var(--accent); font-weight: 600; }
+.nav-count {
+  background: var(--bg3); border-radius: 10px;
+  padding: 1px 7px; font-size: .68rem; color: var(--muted); font-weight: 600;
+}
+.nav-item.active .nav-count { background: var(--accent); color: #fff; }
+
+/* ── CHART ─── */
+.chart-section { margin-bottom: 2.5rem; }
+.section-title {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 1.1rem; font-weight: 700; color: var(--txt);
+  margin-bottom: 4px;
+}
+.section-sub { font-size: .78rem; color: var(--muted); margin-bottom: 1.2rem; }
+
 .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.chart-col {
+  background: var(--bg2); border: 1px solid var(--bdr);
+  border-radius: 6px; padding: 20px 22px;
+}
 .chart-col-title {
-  font-family: 'Archivo', sans-serif;
-  font-size: .85rem;
-  font-weight: 700;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: .72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--muted); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
 }
-.chart-col-title::before {
-  content: '';
-  display: inline-block;
-  width: 10px; height: 10px;
-  border-radius: 2px;
+.chart-col-title span {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
 }
-.chart-col-title.up::before   { background: var(--green); }
-.chart-col-title.down::before { background: var(--red);   }
 
-.hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.hbar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .hbar-lbl {
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .72rem;
-  font-weight: 600;
-  color: var(--txt2);
-  width: 76px;
-  text-align: right;
-  flex-shrink: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: .73rem; font-weight: 500; color: var(--txt2);
+  width: 90px; text-align: right; flex-shrink: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.hbar-date {
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .6rem;
-  color: var(--muted);
-  display: block;
-}
-.hbar-track {
-  flex: 1;
-  height: 24px;
-  background: var(--bg3);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.hbar-fill {
-  height: 100%;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-}
-.hbar-val {
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .7rem;
-  font-weight: 700;
-  padding-left: 8px;
-  color: #fff;
-  white-space: nowrap;
-}
+.hbar-date { font-size: .62rem; color: var(--muted); display: block; font-weight: 400; }
+.hbar-track { flex: 1; height: 20px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.hbar-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; }
+.hbar-val { font-size: .7rem; font-weight: 600; padding-left: 8px; color: #fff; white-space: nowrap; }
 
-/* ── TABLE ──────────────────────────── */
+/* ── TABLE ─── */
 .tbl-wrap {
   overflow-x: auto;
   border: 1px solid var(--bdr);
-  border-radius: 12px;
+  border-radius: 6px;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,.04);
 }
-.tbl { width: 100%; border-collapse: collapse; font-size: .81rem; }
-.tbl thead tr { background: var(--bg3); }
+.tbl { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.tbl thead tr { background: var(--bg2); }
 .tbl th {
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--bdr2);
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .63rem;
-  font-weight: 700;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-align: left;
-  white-space: nowrap;
+  padding: 10px 14px; border-bottom: 1px solid var(--bdr2);
+  font-size: .63rem; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  text-align: left; white-space: nowrap;
 }
-.tbl td {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--bdr);
-  vertical-align: middle;
-  white-space: nowrap;
-  color: var(--txt);
-}
-.tbl tbody tr:hover td { background: var(--pink-lt); }
+.tbl td { padding: 10px 14px; border-bottom: 1px solid var(--bdr); vertical-align: middle; white-space: nowrap; }
+.tbl tbody tr:hover td { background: var(--bg2); }
 .tbl tbody tr:last-child td { border-bottom: none; }
 
 .grp-sep td {
-  background: var(--bg3) !important;
-  padding: 6px 14px !important;
-  font-family: 'Archivo Narrow', sans-serif !important;
-  font-size: .65rem !important;
-  font-weight: 700 !important;
-  color: var(--txt2) !important;
-  letter-spacing: .5px !important;
-  text-transform: uppercase !important;
+  background: var(--bg2) !important; padding: 7px 14px !important;
+  font-size: .65rem !important; font-weight: 600 !important;
+  color: var(--muted) !important; letter-spacing: .8px !important;
+  text-transform: uppercase !important; border-top: 1px solid var(--bdr2) !important;
   border-bottom: 1px solid var(--bdr2) !important;
-  border-top: 2px solid var(--bdr2) !important;
 }
 
-/* cells */
-.rname {
-  font-family: 'Archivo', sans-serif;
-  font-weight: 700;
-  font-size: .9rem;
-  color: var(--txt);
-  letter-spacing: -.3px;
-}
-.rsub {
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .63rem;
-  color: var(--muted);
-}
+.rname { font-weight: 600; font-size: .85rem; color: var(--txt); }
+.rsub  { font-size: .63rem; color: var(--muted); }
 
+/* badge — mono, sem cores por categoria */
 .badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 4px;
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .67rem;
-  font-weight: 700;
-  white-space: nowrap;
-  letter-spacing: .3px;
-  text-transform: uppercase;
+  display: inline-block; padding: 2px 8px; border-radius: 3px;
+  font-size: .65rem; font-weight: 600; white-space: nowrap;
+  letter-spacing: .3px; text-transform: uppercase;
+  background: var(--bg3); color: var(--txt2); border: 1px solid var(--bdr2);
 }
-.b-urg { background: #fff0f5; color: var(--red);    border: 1px solid #ffd6e7; }
-.b-atn { background: #fff7ed; color: var(--orange); border: 1px solid #fed7aa; }
-.b-lot { background: #fef2f2; color: #ef4444;       border: 1px solid #fecaca; }
-.b-opp { background: #f0fdf4; color: var(--green);  border: 1px solid #bbf7d0; }
-.b-mon { background: #fefce8; color: #a16207;       border: 1px solid #fde68a; }
-.b-des { background: #eff6ff; color: var(--blue);   border: 1px solid #bfdbfe; }
-.b-nor { background: var(--bg3); color: var(--muted); border: 1px solid var(--bdr2); }
+/* só urgente e lotando ganham destaque */
+.b-urg { background: var(--red-lt);  color: var(--red);   border-color: #f5c6c6; }
+.b-atn { background: #fef3e2;        color: var(--orange);border-color: #f5d9b0; }
+.b-opp { background: var(--green-lt);color: var(--green); border-color: #95d5b2; }
 
-.spark { display: inline-flex; gap: 3px; align-items: flex-end; height: 24px; vertical-align: middle; }
-.sb  { width: 7px; border-radius: 2px 2px 0 0; background: var(--bdr2); }
-.su  { background: #86efac; }
-.sd  { background: #fca5a5; }
-.sl  { opacity: 1 !important; }
+/* spark */
+.spark { display: inline-flex; gap: 2px; align-items: flex-end; height: 22px; vertical-align: middle; }
+.sb    { width: 6px; border-radius: 1px 1px 0 0; background: var(--bdr2); }
+.su    { background: #74c69d; }
+.sd    { background: #f5a0a0; }
 .su.sl { background: var(--green); }
 .sd.sl { background: var(--red); }
 
-.occ-row  { display: flex; align-items: center; gap: 8px; }
-.occ-track{ width: 52px; height: 5px; background: var(--bg3); border-radius: 3px; }
-.occ-fill { height: 100%; border-radius: 3px; }
-.om { font-family: 'Archivo Narrow', sans-serif; font-size: .78rem; font-weight: 600; }
+.occ-row   { display: flex; align-items: center; gap: 8px; }
+.occ-track { width: 48px; height: 4px; background: var(--bg3); border-radius: 2px; }
+.occ-fill  { height: 100%; border-radius: 2px; }
+.om { font-size: .78rem; font-weight: 600; }
 
-.ng { font-family: 'Archivo Narrow', sans-serif; color: var(--green);  font-size: .8rem; font-weight: 700; }
-.nr { font-family: 'Archivo Narrow', sans-serif; color: var(--red);    font-size: .8rem; font-weight: 700; }
-.nm { font-family: 'Archivo Narrow', sans-serif; color: var(--muted);  font-size: .8rem; }
-.nt { font-family: 'Archivo Narrow', sans-serif; color: var(--txt2);   font-size: .8rem; font-weight: 500; }
-.no { font-family: 'Archivo Narrow', sans-serif; color: var(--orange); font-size: .8rem; font-weight: 700; }
+/* número colorido */
+.ng  { color: var(--green);  font-size: .8rem; font-weight: 600; }
+.nr  { color: var(--red);    font-size: .8rem; font-weight: 600; }
+.nm  { color: var(--muted);  font-size: .8rem; }
+.nt  { color: var(--txt2);   font-size: .8rem; }
+.no  { color: var(--orange); font-size: .8rem; font-weight: 600; }
 
-/* FOOTER */
+/* sinal — tag com ponto colorido, sem fundo colorido */
+.sinal-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .72rem; font-weight: 500; color: var(--txt2);
+}
+.sinal-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* sidebar */
+.sb-label {
+  font-size: .65rem; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin: 1rem 0 .4rem;
+}
+
+/* footer */
 .footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 1rem;
-  margin-top: .5rem;
-  border-top: 1px solid var(--bdr);
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.2rem; border-top: 1px solid var(--bdr); margin-top: .5rem;
 }
-.ftxt {
-  font-family: 'Archivo Narrow', sans-serif;
-  font-size: .68rem;
-  color: var(--muted);
-}
-.ftxt strong { color: var(--pink); }
+.ftxt { font-size: .68rem; color: var(--muted); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -402,13 +289,13 @@ SINAL_ORDER = {
     "⚪ NORMAL":                               7,
 }
 SINAL_META = {
-    "🚨 ABAIXO FORECAST + DESACEL - URGENTE": {"short":"URGENTE",      "badge":"b-urg","color":"#f11075","kpi":"c-red"},
-    "⚠️ ABAIXO FORECAST - PROXIMA VIAGEM":    {"short":"ATENÇÃO",      "badge":"b-atn","color":"#f97316","kpi":"c-ora"},
-    "🔴 LOTANDO - REVISAR PREÇO":              {"short":"LOTANDO",      "badge":"b-lot","color":"#ef4444","kpi":"c-red2"},
-    "🟢 ACELERANDO - OPORTUNIDADE":            {"short":"OPORTUNIDADE", "badge":"b-opp","color":"#00b96b","kpi":"c-grn"},
-    "🟡 ACELERANDO - MONITORAR":               {"short":"MONITORAR",    "badge":"b-mon","color":"#a16207","kpi":"c-yel"},
-    "🔵 DESACELERANDO":                        {"short":"DESACEL.",     "badge":"b-des","color":"#2563eb","kpi":"c-blu"},
-    "⚪ NORMAL":                               {"short":"NORMAL",       "badge":"b-nor","color":"#8a8a9a","kpi":"c-mut"},
+    "🚨 ABAIXO FORECAST + DESACEL - URGENTE": {"short":"Urgente",      "badge":"b-urg","dot":"#c0392b","kpi_dot":"#c0392b"},
+    "⚠️ ABAIXO FORECAST - PROXIMA VIAGEM":    {"short":"Atenção",      "badge":"b-atn","dot":"#d35400","kpi_dot":"#d35400"},
+    "🔴 LOTANDO - REVISAR PREÇO":              {"short":"Lotando",      "badge":"",     "dot":"#e74c3c","kpi_dot":"#e74c3c"},
+    "🟢 ACELERANDO - OPORTUNIDADE":            {"short":"Oportunidade", "badge":"b-opp","dot":"#2d6a4f","kpi_dot":"#2d6a4f"},
+    "🟡 ACELERANDO - MONITORAR":               {"short":"Monitorar",    "badge":"",     "dot":"#b7950b","kpi_dot":"#b7950b"},
+    "🔵 DESACELERANDO":                        {"short":"Desacel.",     "badge":"",     "dot":"#2c3e7a","kpi_dot":"#2c3e7a"},
+    "⚪ NORMAL":                               {"short":"Normal",       "badge":"",     "dot":"#b8b8b0","kpi_dot":"#b8b8b0"},
 }
 
 # ── LOAD ──────────────────────────────────────────────────────────────────────
@@ -424,8 +311,7 @@ def load_data(url: str) -> pd.DataFrame:
                       "pax_hoje_parcial","predict_consenso","pax_faltam_forecast",
                       "predict_time_series","predict_eixo_sentido"]
         float_cols = ["occ_atual","tkm_comp","aceleracao_pct","aceleracao_abs",
-                      "tendencia_linear","pct_atingimento_forecast","media_d2_d5",
-                      "load_factor_atual"]
+                      "tendencia_linear","pct_atingimento_forecast","media_d2_d5","load_factor_atual"]
         for c in int_cols:
             if c in df.columns:
                 df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
@@ -440,19 +326,20 @@ def load_data(url: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
-def badge_html(sinal):
+def sinal_tag(sinal):
     m = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
-    return f'<span class="badge {m["badge"]}">{m["short"]}</span>'
+    b = f'<span class="badge {m["badge"]}">{m["short"]}</span>' if m["badge"] else \
+        f'<span class="sinal-tag"><span class="sinal-dot" style="background:{m["dot"]}"></span>{m["short"]}</span>'
+    return b
 
 def occ_html(v):
     try:
         pct = min(float(v)*100, 100)
-        col = "#f11075" if pct>=90 else ("#f97316" if pct>=70 else "#00b96b")
+        col = "#c0392b" if pct>=90 else ("#d35400" if pct>=70 else "#2d6a4f")
         return (f'<div class="occ-row">'
                 f'<div class="occ-track"><div class="occ-fill" style="width:{pct:.0f}%;background:{col}"></div></div>'
                 f'<span class="om" style="color:{col}">{pct:.0f}%</span></div>')
-    except:
-        return "—"
+    except: return "—"
 
 def spark_html(d5, d4, d3, d2, d1):
     vals = [float(x) if str(x) not in ("nan","") else 0 for x in [d5,d4,d3,d2,d1]]
@@ -460,7 +347,7 @@ def spark_html(d5, d4, d3, d2, d1):
     up   = vals[-1] >= (sum(vals[:-1])/max(len(vals)-1,1))
     bars = ""
     for i,v in enumerate(vals):
-        h    = max(int((v/mx)*22), 2)
+        h    = max(int((v/mx)*20), 2)
         last = (i==4)
         cls  = ("su sl" if up else "sd sl") if last else ("su" if up else "sd")
         bars += f'<div class="sb {cls}" style="height:{h}px" title="{v:.0f}"></div>'
@@ -472,8 +359,7 @@ def acel_html(pct):
         if v > 30:  return f'<span class="ng">+{v:.0f}%</span>'
         if v < -30: return f'<span class="nr">{v:.0f}%</span>'
         return f'<span class="nm">{v:.0f}%</span>'
-    except:
-        return '<span class="nm">—</span>'
+    except: return '<span class="nm">—</span>'
 
 def fc_html(pct, faltam):
     try:
@@ -482,8 +368,7 @@ def fc_html(pct, faltam):
         ft  = (f'<br><span class="nm" style="font-size:.63rem">faltam {int(faltam)}</span>'
                if str(faltam) not in ("nan","") else "")
         return f'<span class="{cls}">{v:.0f}%</span>{ft}'
-    except:
-        return "—"
+    except: return "—"
 
 def tend_html(v):
     try:
@@ -491,45 +376,49 @@ def tend_html(v):
         if f>0.5:  return f'<span class="ng">↑ {f:.1f}</span>'
         if f<-0.5: return f'<span class="nr">↓ {f:.1f}</span>'
         return f'<span class="nm">→ {f:.1f}</span>'
-    except:
-        return '<span class="nm">—</span>'
+    except: return '<span class="nm">—</span>'
 
 def mono_html(v, prefix="", suffix="", dec=0):
     try:
         if str(v) in ("nan",""): return '<span class="nm">—</span>'
         return f'<span class="nt">{prefix}{float(v):,.{dec}f}{suffix}</span>'
-    except:
-        return '<span class="nm">—</span>'
+    except: return '<span class="nm">—</span>'
 
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### Configuração")
-    github_url = st.text_input("URL do CSV (GitHub Raw)", value=GITHUB_RAW_DEFAULT)
-    if st.button("↻ Recarregar dados", use_container_width=True):
+    st.markdown('<div class="sb-label">Fonte de dados</div>', unsafe_allow_html=True)
+    github_url = st.text_input("", value=GITHUB_RAW_DEFAULT, label_visibility="collapsed")
+    if st.button("↻ Recarregar", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
+
     st.divider()
-    st.markdown("### Filtros")
 
     df_raw = load_data(github_url)
     if df_raw.empty:
         st.warning("Nenhum dado. Verifique a URL.")
         st.stop()
 
+    st.markdown('<div class="sb-label">Data de viagem</div>', unsafe_allow_html=True)
     datas_disp = sorted(df_raw["data"].dt.date.unique()) if "data" in df_raw.columns else []
-    datas_sel  = st.multiselect(
-        "Data de viagem", options=datas_disp, default=datas_disp,
-        format_func=lambda d: d.strftime("%d/%m/%Y"),
-    )
+    datas_sel  = st.multiselect("", options=datas_disp, default=datas_disp,
+                                format_func=lambda d: d.strftime("%d/%m/%Y"),
+                                label_visibility="collapsed")
+
+    st.markdown('<div class="sb-label">Antecedência (dias)</div>', unsafe_allow_html=True)
     ant_min, ant_max = int(df_raw["antecedencia"].min()), int(df_raw["antecedencia"].max())
-    ant_range  = st.slider("Antecedência (dias)", ant_min, ant_max, (ant_min, ant_max))
-    rota_busca = st.text_input("Buscar rota", placeholder="ex: SAO-RIO")
-    hide_normal= st.checkbox("Ocultar ⚪ NORMAL", value=True)
+    ant_range = st.slider("", ant_min, ant_max, (ant_min, ant_max), label_visibility="collapsed")
+
+    st.markdown('<div class="sb-label">Buscar rota</div>', unsafe_allow_html=True)
+    rota_busca = st.text_input("", placeholder="ex: SAO-RIO", label_visibility="collapsed")
+
+    hide_normal = st.checkbox("Ocultar rotas Normais", value=True)
 
     st.divider()
     st.markdown(
-        '<span style="font-family:\'Archivo Narrow\',sans-serif;font-size:.68rem;color:#8a8a9a">'
-        'D1 = ontem · D5 = 5 dias atrás<br>Acel = D1 vs média D2–D5</span>',
+        '<span style="font-size:.67rem;color:#8c8c84;line-height:1.6">'
+        'D1 = ontem completo<br>D5 = 5 dias atrás<br>'
+        'Acel = D1 vs média D2–D5</span>',
         unsafe_allow_html=True,
     )
 
@@ -544,15 +433,14 @@ if hide_normal:
     df_base = df_base[df_base["sinal"] != "⚪ NORMAL"]
 
 # ── HEADER ────────────────────────────────────────────────────────────────────
-agora = datetime.now().strftime("%d/%m %H:%M")
+agora = datetime.now().strftime("%d/%m/%Y %H:%M")
 st.markdown(f"""
-<div class="farol-header">
-  <div class="header-left">
-    <span class="farol-eyebrow">Monitoramento de reservas</span>
-    <span class="farol-title">Farol de Aceleração PAX</span>
-    <span class="farol-sub">{len(df_base)} rotas visíveis com os filtros aplicados</span>
+<div class="pg-header">
+  <div>
+    <div class="pg-title">Farol de Aceleração PAX</div>
+    <div class="pg-sub">Monitoramento de velocidade de reservas por rota · {len(df_base)} rotas visíveis</div>
   </div>
-  <div class="upill"><span class="dot"></span>atualizado {agora}</div>
+  <div class="upill"><span class="dot"></span>Atualizado em {agora} · via Databricks</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -560,17 +448,21 @@ st.markdown(f"""
 def cnt_kw(kw): return int(df_raw["sinal"].str.contains(kw, na=False).sum())
 
 kpis = [
-    ("c-red",  "🚨 Urgente",      cnt_kw("URGENTE")),
-    ("c-ora",  "⚠️ Atenção",      cnt_kw("PROXIMA")),
-    ("c-red2", "🔴 Lotando",      cnt_kw("LOTANDO")),
-    ("c-grn",  "🟢 Oportunidade", cnt_kw("OPORTUNIDADE")),
-    ("c-yel",  "🟡 Monitorar",    cnt_kw("MONITORAR")),
-    ("c-blu",  "🔵 Desacel.",     cnt_kw("DESACEL")),
-    ("c-mut",  "Total rotas",     len(df_raw)),
+    ("URGENTE",      cnt_kw("URGENTE"),      "#c0392b"),
+    ("ATENÇÃO",      cnt_kw("PROXIMA"),       "#d35400"),
+    ("LOTANDO",      cnt_kw("LOTANDO"),       "#e74c3c"),
+    ("OPORTUNIDADE", cnt_kw("OPORTUNIDADE"), "#2d6a4f"),
+    ("MONITORAR",    cnt_kw("MONITORAR"),     "#b7950b"),
+    ("DESACEL.",     cnt_kw("DESACEL"),       "#2c3e7a"),
+    ("TOTAL ROTAS",  len(df_raw),             "#b8b8b0"),
 ]
 strip = '<div class="kpi-strip">'
-for cls, lbl, val in kpis:
-    strip += f'<div class="kpi {cls}"><div class="kpi-lbl">{lbl}</div><div class="kpi-val">{val}</div></div>'
+for lbl, val, dot in kpis:
+    zero_cls = " zero" if val == 0 else ""
+    strip += (f'<div class="kpi">'
+              f'<div class="kpi-lbl"><span class="kpi-dot" style="background:{dot}"></span>{lbl}</div>'
+              f'<div class="kpi-val{zero_cls}">{val}</div>'
+              f'</div>')
 strip += '</div>'
 st.markdown(strip, unsafe_allow_html=True)
 
@@ -587,31 +479,37 @@ if "aceleracao_pct" in df_base.columns and not df_base.empty:
         top_down["aceleracao_pct"].abs().max() if not top_down.empty else 1,
     )
 
-    def hbar(row, color, bg):
+    def hbar(row, color):
         pct_w = min(abs(float(row["aceleracao_pct"])) / max_abs * 100, 100)
         v     = float(row["aceleracao_pct"])
         sign  = "+" if v > 0 else ""
         dt    = pd.to_datetime(row["data"]).strftime("%d/%m") if pd.notna(row["data"]) else ""
         return (f'<div class="hbar-row">'
-                f'<div style="width:76px;text-align:right;flex-shrink:0">'
-                f'<span class="hbar-lbl">{row["sentido"]}</span><br>'
+                f'<div style="width:90px;text-align:right;flex-shrink:0">'
+                f'<span class="hbar-lbl">{row["sentido"]}</span>'
                 f'<span class="hbar-date">{dt}</span></div>'
-                f'<div class="hbar-track" style="background:{bg}">'
+                f'<div class="hbar-track">'
                 f'<div class="hbar-fill" style="width:{pct_w:.1f}%;background:{color}">'
                 f'<span class="hbar-val">{sign}{v:.0f}%</span></div></div></div>')
 
-    chart = '<div class="chart-wrap"><div class="chart-grid">'
-    chart += '<div><div class="chart-col-title up">Maiores Acelerações</div>'
-    for _, r in top_up.iterrows():
-        chart += hbar(r, "#00b96b", "#f0fdf4")
-    chart += '</div>'
-    chart += '<div><div class="chart-col-title down">Maiores Desacelerações</div>'
-    for _, r in top_down.iterrows():
-        chart += hbar(r, "#f11075", "#fff0f5")
-    chart += '</div></div></div>'
-    st.markdown(chart, unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="chart-section">
+      <div class="section-title">Maiores variações de aceleração</div>
+      <div class="section-sub">Variação de D1 vs média D2–D5 — rotas com volume mínimo de 2 reservas/dia</div>
+      <div class="chart-grid">
+        <div class="chart-col">
+          <div class="chart-col-title"><span style="background:#2d6a4f"></span>Acelerando</div>
+          {''.join(hbar(r, "#2d6a4f") for _, r in top_up.iterrows())}
+        </div>
+        <div class="chart-col">
+          <div class="chart-col-title"><span style="background:#c0392b"></span>Desacelerando</div>
+          {''.join(hbar(r, "#c0392b") for _, r in top_down.iterrows())}
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# ── CHIPS ─────────────────────────────────────────────────────────────────────
+# ── NAV TABS (filtro de sinal) ────────────────────────────────────────────────
 sinais_pres = sorted(df_base["sinal"].dropna().unique(), key=lambda s: SINAL_ORDER.get(s, 99))
 
 if "chips" not in st.session_state:
@@ -620,6 +518,20 @@ st.session_state.chips = st.session_state.chips.intersection(sinais_pres)
 if not st.session_state.chips:
     st.session_state.chips = set(sinais_pres)
 
+# monta a barra de navegação visual + botões invisíveis para interação
+nav_html = '<div class="nav-bar">'
+for sinal in sinais_pres:
+    m     = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
+    ativo = sinal in st.session_state.chips
+    cnt_s = int((df_base["sinal"] == sinal).sum())
+    act   = " active" if ativo else ""
+    nav_html += (f'<div class="nav-item{act}">'
+                 f'<span class="sinal-dot" style="background:{m["dot"]}"></span>'
+                 f'{m["short"]} <span class="nav-count">{cnt_s}</span></div>')
+nav_html += '</div>'
+st.markdown(nav_html, unsafe_allow_html=True)
+
+# botões reais para interação (menor, abaixo do nav visual)
 chip_cols = st.columns(len(sinais_pres) + 1)
 for i, sinal in enumerate(sinais_pres):
     m     = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
@@ -627,7 +539,7 @@ for i, sinal in enumerate(sinais_pres):
     cnt_s = int((df_base["sinal"] == sinal).sum())
     with chip_cols[i]:
         if st.button(
-            f"{m['short']} ({cnt_s})",
+            f"{'● ' if ativo else '○ '}{m['short']} ({cnt_s})",
             key=f"chip_{i}",
             use_container_width=True,
             type="primary" if ativo else "secondary",
@@ -655,8 +567,11 @@ for _, row in df_view.iterrows():
         cur   = row["sinal"]
         m     = SINAL_META.get(cur, SINAL_META["⚪ NORMAL"])
         cnt_g = int((df_view["sinal"] == cur).sum())
-        rows += (f'<tr class="grp-sep"><td colspan="13" style="color:{m["color"]}!important">'
-                 f'{cur} &nbsp;·&nbsp; {cnt_g} rota{"s" if cnt_g>1 else ""}</td></tr>')
+        rows += (f'<tr class="grp-sep"><td colspan="13">'
+                 f'<span style="display:inline-flex;align-items:center;gap:6px">'
+                 f'<span style="width:6px;height:6px;border-radius:50%;background:{m["dot"]};display:inline-block"></span>'
+                 f'{cur} &nbsp;·&nbsp; {cnt_g} rota{"s" if cnt_g>1 else ""}'
+                 f'</span></td></tr>')
 
     dt  = row["data"].strftime("%d/%m") if pd.notna(row.get("data")) else "—"
     d5  = row.get("pax_d5", 0) if has_d5 else 0
@@ -675,7 +590,7 @@ for _, row in df_view.iterrows():
       <td>{tend_html(row.get('tendencia_linear'))}</td>
       <td>{mono_html(row.get('tkm_comp'), prefix='R$', dec=0)}</td>
       <td>{mono_html(row.get('predict_consenso'))}</td>
-      <td>{badge_html(str(row.get('sinal','⚪ NORMAL')))}</td>
+      <td>{sinal_tag(str(row.get('sinal','⚪ NORMAL')))}</td>
     </tr>"""
 
 st.markdown(f"""
@@ -695,7 +610,7 @@ st.markdown(f"""
 # ── FOOTER ────────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div class="footer">
-  <span class="ftxt"><strong>{len(df_view)}</strong> rotas exibidas · {len(df_raw)} total carregadas</span>
+  <span class="ftxt"><strong style="color:var(--txt)">{len(df_view)}</strong> rotas exibidas · {len(df_raw)} total carregadas</span>
   <span class="ftxt">D1 = ontem completo · Acel = D1 vs média D2–D5 · sem viés de horário</span>
 </div>
 """, unsafe_allow_html=True)
