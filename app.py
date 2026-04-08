@@ -701,8 +701,8 @@ if df_view.empty:
 st.markdown("""
 <div class="sort-info">
   Ordenado por &nbsp;
-  <span class="sort-tag">▼ Forecast %</span>
   <span class="sort-tag">▼ Ocupação</span>
+  <span class="sort-tag">▼ Forecast %</span>
   <span class="sort-tag">▼ Aceleração</span>
   &nbsp; dentro de cada grupo · score ponderado 45 / 35 / 20
 </div>
