@@ -61,7 +61,9 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
   border-radius: 4px !important; color: var(--txt) !important;
   font-family: 'Inter', sans-serif !important; font-size: .83rem !important;
 }
-[data-testid="stTextInput"] input:focus { border-color: var(--accent) !important; outline: none !important; box-shadow: none !important; }
+[data-testid="stTextInput"] input:focus {
+  border-color: var(--accent) !important; outline: none !important; box-shadow: none !important;
+}
 
 [data-testid="stButton"] > button {
   background: var(--bg) !important; border: 1px solid var(--bdr2) !important;
@@ -71,38 +73,23 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
 }
 [data-testid="stButton"] > button:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
 [data-testid="stButton"] > button[kind="primary"] {
-  background: var(--txt) !important; color: var(--bg) !important;
-  border-color: var(--txt) !important;
+  background: var(--txt) !important; color: var(--bg) !important; border-color: var(--txt) !important;
 }
 
-/* scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--bdr2); border-radius: 2px; }
 
-/* ── HEADER ─── */
+/* HEADER */
 .pg-header {
-  padding-bottom: 1.5rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--bdr);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  padding-bottom: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--bdr);
+  display: flex; justify-content: space-between; align-items: flex-start;
 }
 .pg-title {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 2.1rem;
-  font-weight: 700;
-  letter-spacing: -.5px;
-  color: var(--txt);
-  line-height: 1.1;
-  margin-bottom: 6px;
+  font-family: 'Libre Baskerville', serif; font-size: 2.1rem; font-weight: 700;
+  letter-spacing: -.5px; color: var(--txt); line-height: 1.1; margin-bottom: 6px;
 }
-.pg-sub {
-  font-size: .82rem;
-  color: var(--muted);
-  font-weight: 400;
-}
+.pg-sub { font-size: .82rem; color: var(--muted); font-weight: 400; }
 .upill {
   display: inline-flex; align-items: center; gap: 7px;
   font-size: .72rem; color: var(--muted); white-space: nowrap; margin-top: 6px;
@@ -110,21 +97,13 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulse 2.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-/* ── KPI STRIP ─── */
+/* KPI */
 .kpi-strip {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0;
-  border: 1px solid var(--bdr);
-  border-radius: 6px;
-  overflow: hidden;
-  margin-bottom: 2.5rem;
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 0; border: 1px solid var(--bdr); border-radius: 6px;
+  overflow: hidden; margin-bottom: 2.5rem;
 }
-.kpi {
-  padding: 16px 20px 14px;
-  border-right: 1px solid var(--bdr);
-  background: var(--bg);
-}
+.kpi { padding: 16px 20px 14px; border-right: 1px solid var(--bdr); background: var(--bg); }
 .kpi:last-child { border-right: none; }
 .kpi-lbl {
   font-size: .65rem; font-weight: 600; color: var(--muted);
@@ -132,42 +111,16 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
   display: flex; align-items: center; gap: 5px;
 }
 .kpi-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.kpi-val {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 2.2rem; font-weight: 700; line-height: 1; color: var(--txt);
-}
+.kpi-val { font-family: 'Libre Baskerville', serif; font-size: 2.2rem; font-weight: 700; line-height: 1; color: var(--txt); }
 .kpi-val.zero { color: var(--muted2); }
 
-/* ── NAV TABS (chips) ─── */
-.nav-bar {
-  display: flex; gap: 0; border-bottom: 1px solid var(--bdr);
-  margin-bottom: 1.8rem; overflow-x: auto;
-}
-.nav-item {
-  padding: 8px 16px 10px;
-  font-size: .8rem; font-weight: 500; color: var(--muted);
-  cursor: pointer; border-bottom: 2px solid transparent;
-  white-space: nowrap; transition: all .12s; user-select: none;
-  display: flex; align-items: center; gap: 5px;
-  margin-bottom: -1px;
-}
-.nav-item:hover { color: var(--txt); }
-.nav-item.active { color: var(--txt); border-bottom-color: var(--accent); font-weight: 600; }
-.nav-count {
-  background: var(--bg3); border-radius: 10px;
-  padding: 1px 7px; font-size: .68rem; color: var(--muted); font-weight: 600;
-}
-.nav-item.active .nav-count { background: var(--accent); color: #fff; }
-
-/* ── CHART ─── */
+/* CHART */
 .chart-section { margin-bottom: 2.5rem; }
 .section-title {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 1.1rem; font-weight: 700; color: var(--txt);
-  margin-bottom: 4px;
+  font-family: 'Libre Baskerville', serif; font-size: 1.1rem; font-weight: 700;
+  color: var(--txt); margin-bottom: 4px;
 }
 .section-sub { font-size: .78rem; color: var(--muted); margin-bottom: 1.2rem; }
-
 .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
 .chart-col {
   background: var(--bg2); border: 1px solid var(--bdr);
@@ -178,10 +131,7 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
   letter-spacing: 1px; color: var(--muted); margin-bottom: 14px;
   display: flex; align-items: center; gap: 8px;
 }
-.chart-col-title span {
-  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-}
-
+.chart-col-title span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
 .hbar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .hbar-lbl {
   font-size: .73rem; font-weight: 500; color: var(--txt2);
@@ -193,49 +143,79 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
 .hbar-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; }
 .hbar-val { font-size: .7rem; font-weight: 600; padding-left: 8px; color: #fff; white-space: nowrap; }
 
-/* ── TABLE ─── */
+/* NAV TABS */
+.nav-bar {
+  display: flex; gap: 0; border-bottom: 1px solid var(--bdr);
+  margin-bottom: 0; overflow-x: auto;
+}
+.nav-item {
+  padding: 8px 16px 10px; font-size: .8rem; font-weight: 500; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap;
+  transition: all .12s; user-select: none; display: flex; align-items: center;
+  gap: 5px; margin-bottom: -1px;
+}
+.nav-item:hover { color: var(--txt); }
+.nav-item.active { color: var(--txt); border-bottom-color: var(--accent); font-weight: 600; }
+.nav-count {
+  background: var(--bg3); border-radius: 10px; padding: 1px 7px;
+  font-size: .68rem; color: var(--muted); font-weight: 600;
+}
+.nav-item.active .nav-count { background: var(--accent); color: #fff; }
+
+/* ORDENAÇÃO INFO */
+.sort-info {
+  font-size: .68rem; color: var(--muted); padding: 6px 0 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.sort-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--bg3); border: 1px solid var(--bdr2);
+  border-radius: 3px; padding: 1px 7px;
+  font-size: .65rem; font-weight: 600; color: var(--txt2);
+}
+
+/* TABLE */
 .tbl-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--bdr);
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
+  overflow-x: auto; border: 1px solid var(--bdr);
+  border-radius: 6px; margin-bottom: 1.5rem;
 }
 .tbl { width: 100%; border-collapse: collapse; font-size: .8rem; }
 .tbl thead tr { background: var(--bg2); }
 .tbl th {
   padding: 10px 14px; border-bottom: 1px solid var(--bdr2);
   font-size: .63rem; font-weight: 600; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 1px;
-  text-align: left; white-space: nowrap;
+  text-transform: uppercase; letter-spacing: 1px; text-align: left; white-space: nowrap;
 }
+.tbl th.sort-active { color: var(--txt); }
+.tbl th.sort-active::after { content: ' ↓'; color: var(--accent); }
 .tbl td { padding: 10px 14px; border-bottom: 1px solid var(--bdr); vertical-align: middle; white-space: nowrap; }
 .tbl tbody tr:hover td { background: var(--bg2); }
 .tbl tbody tr:last-child td { border-bottom: none; }
 
+/* linha do top 3 dentro do grupo */
+.tbl tbody tr.top-row td { background: #fafaf8; }
+.tbl tbody tr.top-row:hover td { background: var(--bg2); }
+
 .grp-sep td {
   background: var(--bg2) !important; padding: 7px 14px !important;
-  font-size: .65rem !important; font-weight: 600 !important;
-  color: var(--muted) !important; letter-spacing: .8px !important;
-  text-transform: uppercase !important; border-top: 1px solid var(--bdr2) !important;
-  border-bottom: 1px solid var(--bdr2) !important;
+  font-size: .65rem !important; font-weight: 600 !important; color: var(--muted) !important;
+  letter-spacing: .8px !important; text-transform: uppercase !important;
+  border-top: 1px solid var(--bdr2) !important; border-bottom: 1px solid var(--bdr2) !important;
 }
 
 .rname { font-weight: 600; font-size: .85rem; color: var(--txt); }
 .rsub  { font-size: .63rem; color: var(--muted); }
 
-/* badge — mono, sem cores por categoria */
 .badge {
   display: inline-block; padding: 2px 8px; border-radius: 3px;
   font-size: .65rem; font-weight: 600; white-space: nowrap;
   letter-spacing: .3px; text-transform: uppercase;
   background: var(--bg3); color: var(--txt2); border: 1px solid var(--bdr2);
 }
-/* só urgente e lotando ganham destaque */
 .b-urg { background: var(--red-lt);  color: var(--red);   border-color: #f5c6c6; }
 .b-atn { background: #fef3e2;        color: var(--orange);border-color: #f5d9b0; }
 .b-opp { background: var(--green-lt);color: var(--green); border-color: #95d5b2; }
 
-/* spark */
 .spark { display: inline-flex; gap: 2px; align-items: flex-end; height: 22px; vertical-align: middle; }
 .sb    { width: 6px; border-radius: 1px 1px 0 0; background: var(--bdr2); }
 .su    { background: #74c69d; }
@@ -248,28 +228,26 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
 .occ-fill  { height: 100%; border-radius: 2px; }
 .om { font-size: .78rem; font-weight: 600; }
 
-/* número colorido */
 .ng  { color: var(--green);  font-size: .8rem; font-weight: 600; }
 .nr  { color: var(--red);    font-size: .8rem; font-weight: 600; }
 .nm  { color: var(--muted);  font-size: .8rem; }
 .nt  { color: var(--txt2);   font-size: .8rem; }
 .no  { color: var(--orange); font-size: .8rem; font-weight: 600; }
 
-/* sinal — tag com ponto colorido, sem fundo colorido */
-.sinal-tag {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: .72rem; font-weight: 500; color: var(--txt2);
-}
+.sinal-tag { display: inline-flex; align-items: center; gap: 5px; font-size: .72rem; font-weight: 500; color: var(--txt2); }
 .sinal-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
-/* sidebar */
+/* score bar */
+.score-wrap { display: flex; align-items: center; gap: 6px; }
+.score-track { width: 40px; height: 3px; background: var(--bg3); border-radius: 2px; }
+.score-fill  { height: 100%; border-radius: 2px; background: var(--accent); }
+.score-val   { font-size: .68rem; color: var(--muted); }
+
 .sb-label {
   font-size: .65rem; font-weight: 600; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 1px;
-  margin: 1rem 0 .4rem;
+  text-transform: uppercase; letter-spacing: 1px; margin: 1rem 0 .4rem;
 }
 
-/* footer */
 .footer {
   display: flex; justify-content: space-between; align-items: center;
   padding-top: 1.2rem; border-top: 1px solid var(--bdr); margin-top: .5rem;
@@ -289,13 +267,13 @@ SINAL_ORDER = {
     "⚪ NORMAL":                               7,
 }
 SINAL_META = {
-    "🚨 ABAIXO FORECAST + DESACEL - URGENTE": {"short":"Urgente",      "badge":"b-urg","dot":"#c0392b","kpi_dot":"#c0392b"},
-    "⚠️ ABAIXO FORECAST - PROXIMA VIAGEM":    {"short":"Atenção",      "badge":"b-atn","dot":"#d35400","kpi_dot":"#d35400"},
-    "🔴 LOTANDO - REVISAR PREÇO":              {"short":"Lotando",      "badge":"",     "dot":"#e74c3c","kpi_dot":"#e74c3c"},
-    "🟢 ACELERANDO - OPORTUNIDADE":            {"short":"Oportunidade", "badge":"b-opp","dot":"#2d6a4f","kpi_dot":"#2d6a4f"},
-    "🟡 ACELERANDO - MONITORAR":               {"short":"Monitorar",    "badge":"",     "dot":"#b7950b","kpi_dot":"#b7950b"},
-    "🔵 DESACELERANDO":                        {"short":"Desacel.",     "badge":"",     "dot":"#2c3e7a","kpi_dot":"#2c3e7a"},
-    "⚪ NORMAL":                               {"short":"Normal",       "badge":"",     "dot":"#b8b8b0","kpi_dot":"#b8b8b0"},
+    "🚨 ABAIXO FORECAST + DESACEL - URGENTE": {"short":"Urgente",      "badge":"b-urg","dot":"#c0392b"},
+    "⚠️ ABAIXO FORECAST - PROXIMA VIAGEM":    {"short":"Atenção",      "badge":"b-atn","dot":"#d35400"},
+    "🔴 LOTANDO - REVISAR PREÇO":              {"short":"Lotando",      "badge":"",     "dot":"#e74c3c"},
+    "🟢 ACELERANDO - OPORTUNIDADE":            {"short":"Oportunidade", "badge":"b-opp","dot":"#2d6a4f"},
+    "🟡 ACELERANDO - MONITORAR":               {"short":"Monitorar",    "badge":"",     "dot":"#b7950b"},
+    "🔵 DESACELERANDO":                        {"short":"Desacel.",     "badge":"",     "dot":"#2c3e7a"},
+    "⚪ NORMAL":                               {"short":"Normal",       "badge":"",     "dot":"#b8b8b0"},
 }
 
 # ── LOAD ──────────────────────────────────────────────────────────────────────
@@ -325,12 +303,37 @@ def load_data(url: str) -> pd.DataFrame:
         st.error(f"Erro ao carregar dados: {e}")
         return pd.DataFrame()
 
+# ── SCORE ─────────────────────────────────────────────────────────────────────
+def calcular_score(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    # forecast: quanto já capturou (0–150% normalizado)
+    fc   = df["pct_atingimento_forecast"].fillna(0).clip(0, 150) / 150
+    # ocupação (0–1)
+    occ  = df["occ_atual"].fillna(0).clip(0, 1)
+    # aceleração normalizada (0–1)
+    acel = df["aceleracao_pct"].fillna(0)
+    a_min, a_max = acel.min(), acel.max()
+    acel_norm = (acel - a_min) / (a_max - a_min + 1e-9)
+
+    df["_score"] = (0.40 * fc) + (0.35 * occ) + (0.25 * acel_norm)
+    return df
+
 # ── HELPERS ───────────────────────────────────────────────────────────────────
 def sinal_tag(sinal):
     m = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
-    b = f'<span class="badge {m["badge"]}">{m["short"]}</span>' if m["badge"] else \
-        f'<span class="sinal-tag"><span class="sinal-dot" style="background:{m["dot"]}"></span>{m["short"]}</span>'
-    return b
+    if m["badge"]:
+        return f'<span class="badge {m["badge"]}">{m["short"]}</span>'
+    return (f'<span class="sinal-tag">'
+            f'<span class="sinal-dot" style="background:{m["dot"]}"></span>'
+            f'{m["short"]}</span>')
+
+def score_bar(score):
+    try:
+        pct = min(float(score) * 100, 100)
+        return (f'<div class="score-wrap">'
+                f'<div class="score-track"><div class="score-fill" style="width:{pct:.0f}%"></div></div>'
+                f'<span class="score-val">{pct:.0f}</span></div>')
+    except: return "—"
 
 def occ_html(v):
     try:
@@ -350,7 +353,7 @@ def spark_html(d5, d4, d3, d2, d1):
         h    = max(int((v/mx)*20), 2)
         last = (i==4)
         cls  = ("su sl" if up else "sd sl") if last else ("su" if up else "sd")
-        bars += f'<div class="sb {cls}" style="height:{h}px" title="{v:.0f}"></div>'
+        bars += f'<div class="sb {cls}" style="height:{h}px" title="D{5-i}: {v:.0f}"></div>'
     return f'<div class="spark">{bars}</div>'
 
 def acel_html(pct):
@@ -391,7 +394,6 @@ with st.sidebar:
     if st.button("↻ Recarregar", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
-
     st.divider()
 
     df_raw = load_data(github_url)
@@ -416,9 +418,10 @@ with st.sidebar:
 
     st.divider()
     st.markdown(
-        '<span style="font-size:.67rem;color:#8c8c84;line-height:1.6">'
+        '<span style="font-size:.67rem;color:#8c8c84;line-height:1.8">'
         'D1 = ontem completo<br>D5 = 5 dias atrás<br>'
-        'Acel = D1 vs média D2–D5</span>',
+        'Acel = D1 vs média D2–D5<br><br>'
+        '<b>Score</b> = 40% forecast + 35% occ + 25% acel</span>',
         unsafe_allow_html=True,
     )
 
@@ -444,7 +447,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── KPI STRIP ─────────────────────────────────────────────────────────────────
+# ── KPI ───────────────────────────────────────────────────────────────────────
 def cnt_kw(kw): return int(df_raw["sinal"].str.contains(kw, na=False).sum())
 
 kpis = [
@@ -461,8 +464,7 @@ for lbl, val, dot in kpis:
     zero_cls = " zero" if val == 0 else ""
     strip += (f'<div class="kpi">'
               f'<div class="kpi-lbl"><span class="kpi-dot" style="background:{dot}"></span>{lbl}</div>'
-              f'<div class="kpi-val{zero_cls}">{val}</div>'
-              f'</div>')
+              f'<div class="kpi-val{zero_cls}">{val}</div></div>')
 strip += '</div>'
 st.markdown(strip, unsafe_allow_html=True)
 
@@ -495,7 +497,7 @@ if "aceleracao_pct" in df_base.columns and not df_base.empty:
     st.markdown(f"""
     <div class="chart-section">
       <div class="section-title">Maiores variações de aceleração</div>
-      <div class="section-sub">Variação de D1 vs média D2–D5 — rotas com volume mínimo de 2 reservas/dia</div>
+      <div class="section-sub">Variação de D1 vs média D2–D5 · rotas com volume mínimo de 2 reservas/dia</div>
       <div class="chart-grid">
         <div class="chart-col">
           <div class="chart-col-title"><span style="background:#2d6a4f"></span>Acelerando</div>
@@ -509,7 +511,7 @@ if "aceleracao_pct" in df_base.columns and not df_base.empty:
     </div>
     """, unsafe_allow_html=True)
 
-# ── NAV TABS (filtro de sinal) ────────────────────────────────────────────────
+# ── CHIPS ─────────────────────────────────────────────────────────────────────
 sinais_pres = sorted(df_base["sinal"].dropna().unique(), key=lambda s: SINAL_ORDER.get(s, 99))
 
 if "chips" not in st.session_state:
@@ -518,7 +520,6 @@ st.session_state.chips = st.session_state.chips.intersection(sinais_pres)
 if not st.session_state.chips:
     st.session_state.chips = set(sinais_pres)
 
-# monta a barra de navegação visual + botões invisíveis para interação
 nav_html = '<div class="nav-bar">'
 for sinal in sinais_pres:
     m     = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
@@ -531,7 +532,6 @@ for sinal in sinais_pres:
 nav_html += '</div>'
 st.markdown(nav_html, unsafe_allow_html=True)
 
-# botões reais para interação (menor, abaixo do nav visual)
 chip_cols = st.columns(len(sinais_pres) + 1)
 for i, sinal in enumerate(sinais_pres):
     m     = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
@@ -539,7 +539,7 @@ for i, sinal in enumerate(sinais_pres):
     cnt_s = int((df_base["sinal"] == sinal).sum())
     with chip_cols[i]:
         if st.button(
-            f"{'● ' if ativo else '○ '}{m['short']} ({cnt_s})",
+            f"{'●' if ativo else '○'} {m['short']} ({cnt_s})",
             key=f"chip_{i}",
             use_container_width=True,
             type="primary" if ativo else "secondary",
@@ -552,32 +552,54 @@ for i, sinal in enumerate(sinais_pres):
 
 # ── TABELA ────────────────────────────────────────────────────────────────────
 df_view = df_base[df_base["sinal"].isin(st.session_state.chips)].copy()
-df_view = df_view.sort_values("sinal", key=lambda s: s.map(lambda x: SINAL_ORDER.get(x, 99)))
+df_view = calcular_score(df_view)
+
+# ordena: primeiro por grupo de sinal (prioridade), depois por score decrescente
+df_view["_sinal_ord"] = df_view["sinal"].map(lambda x: SINAL_ORDER.get(x, 99))
+df_view = df_view.sort_values(["_sinal_ord", "_score"], ascending=[True, False])
 
 if df_view.empty:
     st.info("Nenhuma rota com os filtros selecionados.")
     st.stop()
 
+# info de ordenação
+st.markdown("""
+<div class="sort-info">
+  Ordenado por &nbsp;
+  <span class="sort-tag">▼ Forecast %</span>
+  <span class="sort-tag">▼ Ocupação</span>
+  <span class="sort-tag">▼ Aceleração</span>
+  &nbsp; dentro de cada grupo · score ponderado 40 / 35 / 25
+</div>
+""", unsafe_allow_html=True)
+
 has_d5 = "pax_d5" in df_view.columns
 rows   = ""
 cur    = None
+rank   = {}  # rank dentro do grupo
 
 for _, row in df_view.iterrows():
-    if row["sinal"] != cur:
-        cur   = row["sinal"]
-        m     = SINAL_META.get(cur, SINAL_META["⚪ NORMAL"])
-        cnt_g = int((df_view["sinal"] == cur).sum())
-        rows += (f'<tr class="grp-sep"><td colspan="13">'
+    sinal = row["sinal"]
+    if sinal != cur:
+        cur      = sinal
+        rank[cur] = 0
+        m        = SINAL_META.get(cur, SINAL_META["⚪ NORMAL"])
+        cnt_g    = int((df_view["sinal"] == cur).sum())
+        rows += (f'<tr class="grp-sep"><td colspan="14">'
                  f'<span style="display:inline-flex;align-items:center;gap:6px">'
                  f'<span style="width:6px;height:6px;border-radius:50%;background:{m["dot"]};display:inline-block"></span>'
                  f'{cur} &nbsp;·&nbsp; {cnt_g} rota{"s" if cnt_g>1 else ""}'
                  f'</span></td></tr>')
 
-    dt  = row["data"].strftime("%d/%m") if pd.notna(row.get("data")) else "—"
-    d5  = row.get("pax_d5", 0) if has_d5 else 0
+    rank[cur] += 1
+    top_cls = " top-row" if rank[cur] <= 3 else ""
+    dt      = row["data"].strftime("%d/%m") if pd.notna(row.get("data")) else "—"
+    d5      = row.get("pax_d5", 0) if has_d5 else 0
+    sc      = row.get("_score", 0)
 
-    rows += f"""<tr>
-      <td><span class="rname">{row.get('sentido','—')}</span><br>
+    rows += f"""<tr class="{top_cls}">
+      <td><span style="font-size:.6rem;color:var(--muted2);font-weight:600;margin-right:6px">#{rank[cur]}</span>
+          <span class="rname">{row.get('sentido','—')}</span><br>
           <span class="rsub">{row.get('rota_principal','')}</span></td>
       <td><span class="nt">{dt}</span></td>
       <td>{mono_html(row.get('antecedencia'), suffix='d')}</td>
@@ -590,6 +612,7 @@ for _, row in df_view.iterrows():
       <td>{tend_html(row.get('tendencia_linear'))}</td>
       <td>{mono_html(row.get('tkm_comp'), prefix='R$', dec=0)}</td>
       <td>{mono_html(row.get('predict_consenso'))}</td>
+      <td>{score_bar(sc)}</td>
       <td>{sinal_tag(str(row.get('sinal','⚪ NORMAL')))}</td>
     </tr>"""
 
@@ -597,10 +620,15 @@ st.markdown(f"""
 <div class="tbl-wrap">
 <table class="tbl">
   <thead><tr>
-    <th>Rota</th><th>Data</th><th>Antec.</th><th>Ocupação</th>
-    <th>PAX</th><th>Assentos liv.</th><th>Forecast %</th>
-    <th>D5→D1</th><th>Acel. %</th><th>Tendência</th>
-    <th>Ticket</th><th>Predict</th><th>Sinal</th>
+    <th>Rota</th><th>Data</th><th>Antec.</th>
+    <th class="sort-active">Ocupação</th>
+    <th>PAX</th><th>Assentos liv.</th>
+    <th class="sort-active">Forecast %</th>
+    <th>D5→D1</th>
+    <th class="sort-active">Acel. %</th>
+    <th>Tendência</th><th>Ticket</th><th>Predict</th>
+    <th class="sort-active">Score</th>
+    <th>Sinal</th>
   </tr></thead>
   <tbody>{rows}</tbody>
 </table>
