@@ -2,11 +2,12 @@ import streamlit as st
 import pandas as pd
 import requests
 import io
+import base64
+import json
 from datetime import datetime
 
-GITHUB_RAW_ACEL    = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/alerta_aceleracao.csv"
-GITHUB_RAW_CURVA   = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado.csv"
-GITHUB_RAW_PRICING = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/pricing_decisoes.csv"
+GITHUB_RAW_ACEL  = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/alerta_aceleracao.csv"
+GITHUB_RAW_CURVA = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado.csv"
 
 st.set_page_config(page_title="Farol PAX", page_icon="🚦", layout="wide", initial_sidebar_state="expanded")
 
@@ -29,19 +30,13 @@ hr{border:none;border-top:1px solid var(--bdr)!important;margin:1rem 0;}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:var(--bg2);}
 ::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px;}
-
-/* inputs */
 [data-testid="stTextInput"] input{background:var(--bg)!important;border:1px solid var(--bdr2)!important;border-radius:4px!important;color:var(--txt)!important;font-family:'Inter',sans-serif!important;font-size:.83rem!important;}
 [data-testid="stTextInput"] input:focus{border-color:var(--accent)!important;outline:none!important;box-shadow:none!important;}
-
-/* botões */
 [data-testid="stButton"]>button{background:var(--bg)!important;border:1px solid var(--bdr2)!important;color:var(--muted)!important;font-family:'Inter',sans-serif!important;font-size:.75rem!important;font-weight:500!important;border-radius:20px!important;padding:4px 14px!important;line-height:1.4!important;transition:all .12s!important;white-space:nowrap!important;}
 [data-testid="stButton"]>button:hover{border-color:var(--accent)!important;color:var(--accent)!important;background:rgba(241,16,117,.04)!important;}
 [data-testid="stButton"]>button[kind="primary"]{background:rgba(241,16,117,.08)!important;color:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important;}
 [data-testid="stSidebar"] [data-testid="stButton"]>button{border-radius:4px!important;color:var(--txt2)!important;}
 [data-testid="stSidebar"] [data-testid="stButton"]>button:hover{border-color:var(--accent)!important;color:var(--accent)!important;background:var(--bg)!important;}
-
-/* multiselect */
 [data-testid="stMultiSelect"] [data-baseweb="select"]>div{background:var(--bg)!important;border:1px solid var(--bdr2)!important;border-radius:4px!important;min-height:36px!important;box-shadow:none!important;}
 [data-testid="stMultiSelect"] [data-baseweb="select"]>div:focus-within{border-color:var(--accent)!important;box-shadow:none!important;}
 [data-baseweb="tag"]{background:var(--bg3)!important;border:1px solid var(--bdr2)!important;border-radius:3px!important;padding:1px 6px!important;height:22px!important;}
@@ -49,33 +44,23 @@ hr{border:none;border-top:1px solid var(--bdr)!important;margin:1rem 0;}
 [data-baseweb="popover"] [data-baseweb="menu"]{background:var(--bg)!important;border:1px solid var(--bdr2)!important;border-radius:4px!important;box-shadow:0 4px 16px rgba(0,0,0,.08)!important;}
 [data-baseweb="option"]{background:var(--bg)!important;font-size:.78rem!important;color:var(--txt2)!important;padding:7px 12px!important;}
 [data-baseweb="option"]:hover,[aria-selected="true"][data-baseweb="option"]{background:var(--bg2)!important;}
-
-/* slider */
 [data-testid="stSlider"] [role="slider"]{background:var(--accent)!important;border:2px solid #fff!important;box-shadow:0 1px 6px rgba(241,16,117,.25)!important;width:14px!important;height:14px!important;}
 [data-testid="stSlider"] [data-testid="stTickBarMin"],[data-testid="stSlider"] [data-testid="stTickBarMax"]{font-size:.7rem!important;color:var(--muted)!important;}
-
-/* checkbox */
 [data-testid="stCheckbox"] label{font-size:.82rem!important;color:var(--txt2)!important;font-weight:500!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;white-space:nowrap!important;}
 [data-testid="stCheckbox"] [data-baseweb="checkbox"] div{border-color:var(--bdr2)!important;border-radius:3px!important;background:var(--bg)!important;width:16px!important;height:16px!important;flex-shrink:0!important;}
 [data-testid="stCheckbox"] [aria-checked="true"] div{background:var(--accent)!important;border-color:var(--accent)!important;}
-
-/* tabs nativas */
 [data-testid="stTabs"] [data-baseweb="tab-list"]{background:transparent!important;border-bottom:1px solid var(--bdr)!important;gap:0!important;}
 [data-testid="stTabs"] [data-baseweb="tab"]{background:transparent!important;color:var(--muted)!important;font-family:'Inter',sans-serif!important;font-size:.85rem!important;font-weight:500!important;border:none!important;border-bottom:2px solid transparent!important;padding:8px 18px 10px!important;margin-bottom:-1px!important;}
 [data-testid="stTabs"] [data-baseweb="tab"]:hover{color:var(--txt)!important;}
 [data-testid="stTabs"] [aria-selected="true"][data-baseweb="tab"]{color:var(--txt)!important;border-bottom-color:var(--accent)!important;font-weight:600!important;}
 [data-testid="stTabs"] [data-baseweb="tab-highlight"]{display:none!important;}
 [data-testid="stTabs"] [data-baseweb="tab-border"]{display:none!important;}
-
-/* layout */
 .pg-header{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:1.4rem;margin-bottom:1.8rem;border-bottom:1px solid var(--bdr);}
 .pg-title{font-family:'Libre Baskerville',serif;font-size:2rem;font-weight:700;letter-spacing:-.5px;color:var(--txt);line-height:1.1;margin-bottom:5px;}
 .pg-sub{font-size:.82rem;color:var(--muted);}
 .upill{display:inline-flex;align-items:center;gap:7px;font-size:.72rem;color:var(--muted);white-space:nowrap;margin-top:4px;}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* kpi */
 .kpi-strip{display:grid;gap:0;border:1px solid var(--bdr);border-radius:6px;overflow:hidden;margin-bottom:2rem;}
 .kpi{padding:14px 18px 12px;border-right:1px solid var(--bdr);background:var(--bg);}
 .kpi:last-child{border-right:none;}
@@ -87,8 +72,6 @@ hr{border:none;border-top:1px solid var(--bdr)!important;margin:1rem 0;}
 .c-red2{border-top:3px solid #ef4444!important;}.c-grn{border-top:3px solid var(--green)!important;}
 .c-yel{border-top:3px solid #b7950b!important;}.c-blu{border-top:3px solid var(--blue)!important;}
 .c-mut{border-top:3px solid var(--bdr2)!important;}
-
-/* chart */
 .chart-section{margin-bottom:2rem;}
 .section-title{font-family:'Libre Baskerville',serif;font-size:1.05rem;font-weight:700;color:var(--txt);margin-bottom:3px;}
 .section-sub{font-size:.76rem;color:var(--muted);margin-bottom:1rem;}
@@ -102,12 +85,8 @@ hr{border:none;border-top:1px solid var(--bdr)!important;margin:1rem 0;}
 .hbar-track{flex:1;height:20px;background:var(--bg3);border-radius:3px;overflow:hidden;}
 .hbar-fill{height:100%;border-radius:3px;display:flex;align-items:center;}
 .hbar-val{font-size:.68rem;font-weight:600;padding-left:8px;color:#fff;white-space:nowrap;}
-
-/* sort info */
 .sort-info{font-size:.68rem;color:var(--muted);padding:6px 0 10px;display:flex;align-items:center;gap:6px;}
 .sort-tag{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:3px;padding:1px 7px;font-size:.65rem;font-weight:600;color:var(--txt2);}
-
-/* table */
 .tbl-wrap{overflow-x:auto;border:1px solid var(--bdr);border-radius:6px;margin-bottom:1.2rem;}
 .tbl{width:100%;border-collapse:collapse;font-size:.79rem;}
 .tbl thead tr{background:var(--bg2);}
@@ -119,8 +98,6 @@ hr{border:none;border-top:1px solid var(--bdr)!important;margin:1rem 0;}
 .tbl tbody tr:last-child td{border-bottom:none;}
 .tbl tbody tr.top-row td{background:#fafaf8;}
 .grp-sep td{background:var(--bg2)!important;padding:6px 13px!important;font-size:.63rem!important;font-weight:600!important;color:var(--muted)!important;letter-spacing:.8px!important;text-transform:uppercase!important;border-top:1px solid var(--bdr2)!important;border-bottom:1px solid var(--bdr2)!important;}
-
-/* cell helpers */
 .rname{font-weight:600;font-size:.85rem;color:var(--txt);}
 .rsub{font-size:.62rem;color:var(--muted);}
 .badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.63rem;font-weight:600;white-space:nowrap;text-transform:uppercase;background:var(--bg3);color:var(--txt2);border:1px solid var(--bdr2);}
@@ -149,6 +126,13 @@ hr{border:none;border-top:1px solid var(--bdr)!important;margin:1rem 0;}
 .sb-label{font-size:.63rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:.8rem 0 .3rem;}
 .footer{display:flex;justify-content:space-between;align-items:center;padding-top:1rem;border-top:1px solid var(--bdr);margin-top:.5rem;}
 .ftxt{font-size:.67rem;color:var(--muted);}
+/* banner de acionamento */
+.acion-banner{display:flex;align-items:center;justify-content:space-between;
+  background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;
+  padding:10px 16px;margin:1rem 0 .5rem;}
+.acion-banner-warn{background:#fff7ed;border-color:#fed7aa;}
+.acion-txt{font-size:.82rem;color:#2d6a4f;font-weight:600;}
+.acion-txt-warn{color:#92400e;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -201,8 +185,10 @@ def prep_acel(df: pd.DataFrame) -> pd.DataFrame:
 def prep_curva(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty: return df
     df = df.copy()
-    for c in ["occ_atual","lf_pascoa_2026","lf_atual","ratio","tkm_comp",
-              "preco_base","preco_est_draft","preco_praticado","mult_final","price_cc"]:
+    float_cols = ["occ_atual","lf_pascoa_2026","lf_atual","ratio","tkm_comp",
+                  "preco_base","preco_est_draft","preco_praticado","mult_final","price_cc",
+                  "tkm_atual","mult_flutuacao","preco_com_flutuacao"]
+    for c in float_cols:
         if c in df.columns: df[c] = pd.to_numeric(df[c].replace("null", None), errors="coerce")
     for c in ["pax","capacidade_atual","vagas_restantes","antecedencia"]:
         if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
@@ -223,8 +209,7 @@ def calcular_score(df: pd.DataFrame) -> pd.DataFrame:
 # ── HELPERS HTML ──────────────────────────────────────────────────────────────
 def sinal_tag(sinal):
     m = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
-    if m["badge"]:
-        return f'<span class="badge {m["badge"]}">{m["short"]}</span>'
+    if m["badge"]: return f'<span class="badge {m["badge"]}">{m["short"]}</span>'
     return f'<span class="sinal-tag"><span class="sinal-dot" style="background:{m["dot"]}"></span>{m["short"]}</span>'
 
 def occ_html(v):
@@ -289,9 +274,9 @@ def score_bar(score):
 
 def lf_bar(v, ref=None):
     try:
-        pct = min(float(v)*100, 100)
+        pct   = min(float(v)*100, 100)
         ref_f = float(ref) if ref is not None and str(ref) not in ("nan","") else None
-        col = "#2d6a4f" if (ref_f is None or float(v) >= ref_f) else "#c0392b"
+        col   = "#2d6a4f" if (ref_f is None or float(v) >= ref_f) else "#c0392b"
         return (f'<div class="occ-row"><div class="occ-track" style="width:52px">'
                 f'<div class="occ-fill" style="width:{pct:.0f}%;background:{col}"></div></div>'
                 f'<span class="om" style="color:{col}">{float(v):.0%}</span></div>')
@@ -318,31 +303,25 @@ with st.sidebar:
     st.markdown('<div style="padding:14px 0 6px"><div class="sb-label">Aceleração PAX · URL</div></div>',
                 unsafe_allow_html=True)
     url_acel = st.text_input("", value=GITHUB_RAW_ACEL, label_visibility="collapsed", key="url_acel")
-
-    st.markdown('<div class="sb-label" style="margin-top:8px">Curva de Feriado · URL</div>',
-                unsafe_allow_html=True)
+    st.markdown('<div class="sb-label" style="margin-top:8px">Curva de Feriado · URL</div>', unsafe_allow_html=True)
     url_curva = st.text_input("", value=GITHUB_RAW_CURVA, label_visibility="collapsed", key="url_curva")
 
     if st.button("↻  Recarregar dados", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
-    # carrega os dois datasets
     df_acel_raw  = prep_acel(load_data(url_acel))
     df_curva_raw = prep_curva(load_data(url_curva))
 
-    # filtros da aba 1
     st.markdown('<div style="margin-top:18px;padding-top:18px;border-top:1px solid #e2e1dc">'
                 '<div style="font-size:.7rem;font-weight:700;color:#8c8c84;letter-spacing:1.5px;'
                 'text-transform:uppercase;margin-bottom:12px">Filtros · Aceleração</div></div>',
                 unsafe_allow_html=True)
-
     datas_disp = sorted(df_acel_raw["data"].dt.date.unique()) if not df_acel_raw.empty else []
     st.markdown('<div class="sb-label">Data de viagem</div>', unsafe_allow_html=True)
     datas_sel  = st.multiselect("", options=datas_disp, default=datas_disp,
                                 format_func=lambda d: d.strftime("%d/%m/%Y"),
                                 label_visibility="collapsed", key="datas_acel")
-
     st.markdown('<div style="height:6px"></div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-label">Antecedência (dias)</div>', unsafe_allow_html=True)
     if not df_acel_raw.empty:
@@ -351,10 +330,9 @@ with st.sidebar:
     else:
         ant_min, ant_max = 0, 30
     ant_range = st.slider("", ant_min, ant_max, (ant_min, ant_max), label_visibility="collapsed")
-
     st.markdown('<div style="height:4px"></div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-label">Buscar rota</div>', unsafe_allow_html=True)
-    rota_busca = st.text_input("", placeholder="ex: SAO-RIO", label_visibility="collapsed", key="rota_acel")
+    rota_busca  = st.text_input("", placeholder="ex: SAO-RIO", label_visibility="collapsed", key="rota_acel")
     hide_normal = st.checkbox("Ocultar rotas Normais", value=True)
 
     st.markdown(
@@ -386,7 +364,7 @@ if not df_base.empty:
         df_base = df_base[df_base["sinal"] != "⚪ NORMAL"]
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["🚦  Aceleração PAX", "📈  Curva de Feriado", "✏️  Editor de Pricing"])
+tab1, tab2 = st.tabs(["🚦  Aceleração PAX", "📈  Curva de Feriado"])
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — ACELERAÇÃO PAX
@@ -406,16 +384,15 @@ with tab1:
     if df_acel_raw.empty:
         st.info("Nenhum dado de aceleração. Verifique a URL na sidebar.")
     else:
-        # KPI
         def cnt_kw(kw): return int(df_acel_raw["sinal"].str.contains(kw, na=False).sum())
         kpis = [
-            ("URGENTE",      cnt_kw("URGENTE"),       "#c0392b", "c-red"),
-            ("ATENÇÃO",      cnt_kw("PROXIMA"),        "#d35400", "c-ora"),
-            ("LOTANDO",      cnt_kw("LOTANDO"),        "#e74c3c", "c-red2"),
-            ("OPORTUNIDADE", cnt_kw("OPORTUNIDADE"),  "#2d6a4f", "c-grn"),
-            ("MONITORAR",    cnt_kw("MONITORAR"),      "#b7950b", "c-yel"),
-            ("DESACEL.",     cnt_kw("DESACEL"),        "#2c3e7a", "c-blu"),
-            ("TOTAL ROTAS",  len(df_acel_raw),         "#b8b8b0", "c-mut"),
+            ("URGENTE",      cnt_kw("URGENTE"),      "#c0392b", "c-red"),
+            ("ATENÇÃO",      cnt_kw("PROXIMA"),       "#d35400", "c-ora"),
+            ("LOTANDO",      cnt_kw("LOTANDO"),       "#e74c3c", "c-red2"),
+            ("OPORTUNIDADE", cnt_kw("OPORTUNIDADE"), "#2d6a4f", "c-grn"),
+            ("MONITORAR",    cnt_kw("MONITORAR"),     "#b7950b", "c-yel"),
+            ("DESACEL.",     cnt_kw("DESACEL"),       "#2c3e7a", "c-blu"),
+            ("TOTAL ROTAS",  len(df_acel_raw),        "#b8b8b0", "c-mut"),
         ]
         strip = '<div class="kpi-strip" style="grid-template-columns:repeat(7,1fr)">'
         for lbl, val, dot, cls in kpis:
@@ -426,7 +403,6 @@ with tab1:
         strip += '</div>'
         st.markdown(strip, unsafe_allow_html=True)
 
-        # Gráfico aceleração
         if "aceleracao_pct" in df_base.columns and not df_base.empty:
             df_ch = df_base.dropna(subset=["aceleracao_pct"]).copy()
             if "media_d2_d5" in df_ch.columns:
@@ -466,7 +442,6 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
 
-        # Chips de sinal
         sinais_pres = sorted(df_base["sinal"].dropna().unique(), key=lambda s: SINAL_ORDER.get(s, 99))
         if "chips" not in st.session_state:
             st.session_state.chips = set(sinais_pres)
@@ -491,7 +466,6 @@ with tab1:
                         st.session_state.chips.add(sinal)
                     st.rerun()
 
-        # Tabela
         df_view = df_base[df_base["sinal"].isin(st.session_state.chips)].copy()
         df_view = calcular_score(df_view)
         df_view["_sinal_ord"] = df_view["sinal"].map(lambda x: SINAL_ORDER.get(x, 99))
@@ -553,8 +527,7 @@ with tab1:
                 <th class="sort-active">Ocupação</th>
                 <th>PAX</th><th>Assentos liv.</th>
                 <th class="sort-active">Forecast %</th>
-                <th>D5→D1</th>
-                <th class="sort-active">Acel. %</th>
+                <th>D5→D1</th><th class="sort-active">Acel. %</th>
                 <th>Tendência</th><th>Ticket</th><th>Predict</th>
                 <th class="sort-active">Score</th><th>Sinal</th>
               </tr></thead>
@@ -577,7 +550,7 @@ with tab2:
     <div class="pg-header">
       <div>
         <div class="pg-title">Curva de Feriado</div>
-        <div class="pg-sub">Comparativo de load factor atual vs referência · edite o preço desejado diretamente na tabela</div>
+        <div class="pg-sub">Comparativo de load factor · edite o preço desejado diretamente na tabela</div>
       </div>
       <div class="upill"><span class="dot"></span>Atualizado em {agora2} · via Databricks</div>
     </div>
@@ -616,16 +589,13 @@ with tab2:
         df_chart = (df_c.groupby("sentido")
                     .agg(lf_atual=("lf_atual","mean"), lf_ref=("lf_pascoa_2026","mean"),
                          ratio=("ratio","mean"), occ=("occ_atual","mean"))
-                    .reset_index()
-                    .sort_values("occ", ascending=False)
-                    .head(12))
+                    .reset_index().sort_values("occ", ascending=False).head(12))
         max_lf = max(df_chart["lf_atual"].max(), df_chart["lf_ref"].max(), 0.01)
-
         chart_rows = ""
         for _, r in df_chart.iterrows():
             lf_a  = float(r["lf_atual"]) if pd.notna(r["lf_atual"]) else 0
             lf_r  = float(r["lf_ref"])   if pd.notna(r["lf_ref"])   else 0
-            rat   = float(r["ratio"])     if pd.notna(r["ratio"])    else 0
+            rat   = float(r["ratio"])    if pd.notna(r["ratio"])    else 0
             w_a   = min(lf_a / max_lf * 100, 100)
             w_r   = min(lf_r / max_lf * 100, 100)
             col_a = "#2d6a4f" if lf_a >= lf_r else "#c0392b"
@@ -644,7 +614,6 @@ with tab2:
                 f'<div style="width:44px;text-align:right;flex-shrink:0">'
                 f'<span class="{rat_c}" style="font-size:.76rem">{rat:.2f}x</span></div></div>'
             )
-
         st.markdown(f"""
         <div class="chart-section">
           <div class="section-title">LF Atual vs Referência — top rotas por ocupação</div>
@@ -678,108 +647,123 @@ with tab2:
         if rota_c:      df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
         df_cv = df_cv.sort_values(["occ_atual","ratio"], ascending=[False, False]).reset_index(drop=True)
 
-        # ── DATA EDITOR com coluna de preço desejado ──────────────────────────
+        # ── EDITOR DE PRICING ────────────────────────────────────────────────
         st.markdown("""
-        <div style="margin:1rem 0 .5rem">
+        <div style="margin:1.2rem 0 .4rem">
           <div class="section-title" style="font-size:.95rem">Editor de Pricing</div>
-          <div class="section-sub">Preencha <strong>Preço Novo</strong> nas linhas que deseja alterar — o mult é calculado automaticamente.
-          Linhas sem preço novo são ignoradas no acionamento.</div>
+          <div class="section-sub">
+            Preencha <strong>✏️ Preço novo</strong> nas linhas que deseja alterar.
+            O mult é calculado automaticamente. Linhas sem preço novo são ignoradas.
+            Use o botão <strong>Reset</strong> para limpar todas as edições.
+          </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # prepara df para o editor — só colunas relevantes + coluna editável
-        editor_cols = {
-            "data":           "Data",
-            "turno":          "Turno",
-            "rota_principal": "Rota principal",
-            "sentido":        "Sentido",
-            "occ_atual":      "Occ",
-            "lf_atual":       "LF Atual",
-            "lf_pascoa_2026": "LF Ref",
-            "ratio":          "Ratio",
-            "preco_praticado":"Preço praticado",
-        }
-        df_editor = df_cv[[c for c in editor_cols if c in df_cv.columns]].copy()
-        df_editor = df_editor.rename(columns=editor_cols)
-        df_editor["Preço novo"] = None   # coluna editável — começa vazia
+        # chave de versão — mudar força recriação do editor
+        if "editor_version" not in st.session_state:
+            st.session_state.editor_version = 0
 
-        # formata colunas de leitura
-        if "Occ" in df_editor.columns:
-            df_editor["Occ"] = (df_editor["Occ"] * 100).round(1).astype(str) + "%"
-        if "LF Atual" in df_editor.columns:
-            df_editor["LF Atual"] = (df_editor["LF Atual"] * 100).round(1).astype(str) + "%"
-        if "LF Ref" in df_editor.columns:
-            df_editor["LF Ref"] = (df_editor["LF Ref"] * 100).round(1).astype(str) + "%"
-        if "Ratio" in df_editor.columns:
-            df_editor["Ratio"] = df_editor["Ratio"].round(3).astype(str) + "x"
-        if "Data" in df_editor.columns:
-            df_editor["Data"] = pd.to_datetime(df_editor["Data"]).dt.strftime("%d/%m/%Y")
+        # monta df para o editor com TODAS as colunas relevantes
+        cols_editor = [
+            "data", "turno", "rota_principal", "sentido",
+            "occ_atual", "pax", "vagas_restantes",
+            "lf_atual", "lf_pascoa_2026", "ratio",
+            "tkm_atual", "tkm_comp", "price_cc",
+            "preco_praticado", "preco_com_flutuacao",
+            "mult_final", "mult_flutuacao",
+            "antecedencia",
+        ]
+        cols_presentes = [c for c in cols_editor if c in df_cv.columns]
+        df_editor = df_cv[cols_presentes].copy()
+
+        # formata colunas de exibição
+        df_editor["data_fmt"] = pd.to_datetime(df_editor["data"]).dt.strftime("%d/%m/%Y")
+        if "occ_atual"       in df_editor.columns: df_editor["occ_pct"]  = (df_editor["occ_atual"]       * 100).round(1).astype(str) + "%"
+        if "lf_atual"        in df_editor.columns: df_editor["lf_a_fmt"] = (df_editor["lf_atual"]        * 100).round(1).astype(str) + "%"
+        if "lf_pascoa_2026"  in df_editor.columns: df_editor["lf_r_fmt"] = (df_editor["lf_pascoa_2026"]  * 100).round(1).astype(str) + "%"
+        if "ratio"           in df_editor.columns: df_editor["ratio_fmt"]= df_editor["ratio"].round(3).astype(str) + "x"
+
+        # coluna editável — preço novo (começa None)
+        df_editor["✏️ Preço novo"] = None
+
+        # colunas que aparecem no editor (ordem visual)
+        show_cols = (
+            ["data_fmt","turno","rota_principal","sentido","antecedencia",
+             "occ_pct","pax","vagas_restantes",
+             "lf_a_fmt","lf_r_fmt","ratio_fmt",
+             "tkm_atual","tkm_comp","price_cc",
+             "preco_praticado","preco_com_flutuacao",
+             "mult_final","mult_flutuacao",
+             "✏️ Preço novo"]
+        )
+        show_cols = [c for c in show_cols if c in df_editor.columns]
+        df_show   = df_editor[show_cols].copy()
+
+        col_config = {
+            "data_fmt":            st.column_config.TextColumn("Data",            disabled=True),
+            "turno":               st.column_config.TextColumn("Turno",           disabled=True),
+            "rota_principal":      st.column_config.TextColumn("Rota principal",  disabled=True),
+            "sentido":             st.column_config.TextColumn("Sentido",         disabled=True),
+            "antecedencia":        st.column_config.NumberColumn("Antec.",        disabled=True),
+            "occ_pct":             st.column_config.TextColumn("Occ",             disabled=True),
+            "pax":                 st.column_config.NumberColumn("PAX",           disabled=True),
+            "vagas_restantes":     st.column_config.NumberColumn("Vagas rest.",   disabled=True),
+            "lf_a_fmt":            st.column_config.TextColumn("LF Atual",        disabled=True),
+            "lf_r_fmt":            st.column_config.TextColumn("LF Ref",          disabled=True),
+            "ratio_fmt":           st.column_config.TextColumn("Ratio",           disabled=True),
+            "tkm_atual":           st.column_config.NumberColumn("TKM Atual",     disabled=True, format="R$ %.0f"),
+            "tkm_comp":            st.column_config.NumberColumn("TKM Comp",      disabled=True, format="R$ %.0f"),
+            "price_cc":            st.column_config.NumberColumn("Price CC",      disabled=True, format="R$ %.0f"),
+            "preco_praticado":     st.column_config.NumberColumn("Preço prat.",   disabled=True, format="R$ %.2f"),
+            "preco_com_flutuacao": st.column_config.NumberColumn("Preço c/ flut.",disabled=True, format="R$ %.2f"),
+            "mult_final":          st.column_config.NumberColumn("Mult Final",    disabled=True, format="%.3fx"),
+            "mult_flutuacao":      st.column_config.NumberColumn("Mult Flut.",    disabled=True, format="%.3fx"),
+            "✏️ Preço novo": st.column_config.NumberColumn(
+                "✏️ Preço novo",
+                help="Digite o preço desejado — mult será calculado automaticamente",
+                min_value=0.0,
+                format="R$ %.2f",
+            ),
+        }
 
         edited = st.data_editor(
-            df_editor,
+            df_show,
             use_container_width=True,
             hide_index=True,
-            column_config={
-                "Preço novo": st.column_config.NumberColumn(
-                    "✏️ Preço novo",
-                    help="Digite o preço desejado — o mult será calculado automaticamente",
-                    min_value=0.0,
-                    format="R$ %.2f",
-                ),
-                "Data":            st.column_config.TextColumn("Data",            disabled=True),
-                "Turno":           st.column_config.TextColumn("Turno",           disabled=True),
-                "Rota principal":  st.column_config.TextColumn("Rota principal",  disabled=True),
-                "Sentido":         st.column_config.TextColumn("Sentido",         disabled=True),
-                "Occ":             st.column_config.TextColumn("Occ",             disabled=True),
-                "LF Atual":        st.column_config.TextColumn("LF Atual",        disabled=True),
-                "LF Ref":          st.column_config.TextColumn("LF Ref",          disabled=True),
-                "Ratio":           st.column_config.TextColumn("Ratio",           disabled=True),
-                "Preço praticado": st.column_config.TextColumn("Preço praticado", disabled=True),
-            },
+            column_config=col_config,
             num_rows="fixed",
-            key="pricing_editor",
+            key=f"pricing_editor_{st.session_state.editor_version}",
         )
 
-        # ── preview do acionamento ────────────────────────────────────────────
-        df_editado = edited[edited["Preço novo"].notna()].copy()
+        # ── PREVIEW DO ACIONAMENTO ────────────────────────────────────────────
+        df_editado = edited[edited["✏️ Preço novo"].notna()].copy()
 
         if not df_editado.empty:
             # recupera preco_praticado original pelo índice
             df_editado["_preco_prat"] = df_cv.loc[df_editado.index, "preco_praticado"].values
-            df_editado["mult"] = (
-                df_editado["Preço novo"] / df_editado["_preco_prat"]
-            ).round(6)
+            df_editado["mult_novo"]   = (df_editado["✏️ Preço novo"] / df_editado["_preco_prat"]).round(6)
 
-            df_acionamento = df_editado[[
-                "Data", "Turno", "Rota principal", "Sentido", "Preço praticado",
-                "Preço novo", "mult"
-            ]].copy()
-            df_acionamento = df_acionamento.rename(columns={
-                "Data":           "data",
-                "Turno":          "turno",
-                "Rota principal": "rota_principal",
-                "Sentido":        "sentido",
-                "Preço praticado":"preco_praticado",
-                "Preço novo":     "preco_novo",
+            df_acionamento = pd.DataFrame({
+                "data":            pd.to_datetime(df_editado["data_fmt"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d"),
+                "turno":           df_editado["turno"].values,
+                "rota_principal":  df_editado["rota_principal"].values,
+                "sentido":         df_editado["sentido"].values,
+                "preco_praticado": df_editado["_preco_prat"].values,
+                "preco_novo":      df_editado["✏️ Preço novo"].values,
+                "mult":            df_editado["mult_novo"].values,
             })
-            # converte data de volta pra formato ISO
-            df_acionamento["data"] = pd.to_datetime(df_acionamento["data"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d")
 
+            n_edit = len(df_acionamento)
             st.markdown(f"""
-            <div style="margin:1.2rem 0 .5rem;padding:12px 16px;background:#f0fdf4;
-                        border:1px solid #bbf7d0;border-radius:6px;display:flex;
-                        align-items:center;gap:10px">
-              <span style="font-size:1.1rem">✅</span>
-              <span style="font-size:.82rem;color:#2d6a4f;font-weight:600">
-                {len(df_acionamento)} linha{"s" if len(df_acionamento)>1 else ""} com preço editado · pronto para enviar
-              </span>
+            <div class="acion-banner">
+              <span class="acion-txt">✅ {n_edit} linha{"s" if n_edit>1 else ""} com preço editado · pronto para enviar</span>
             </div>
             """, unsafe_allow_html=True)
 
             st.dataframe(df_acionamento, use_container_width=True, hide_index=True)
 
-            # ── botões de envio ───────────────────────────────────────────────
-            col_b1, col_b2, _ = st.columns([1, 1, 4])
+            # botões de ação
+            col_b1, col_b2, col_b3, _ = st.columns([1, 1, 1, 3])
 
             with col_b1:
                 csv_bytes = df_acionamento.to_csv(index=False).encode("utf-8")
@@ -792,41 +776,49 @@ with tab2:
                 )
 
             with col_b2:
-                if st.button("🚀 Enviar pro GitHub", use_container_width=True, type="primary", key="push_pricing"):
-                    import base64 as b64, json as js
-                    token  = url_acel.split("raw.githubusercontent.com")[0] if "raw.githubusercontent.com" in url_acel else ""
-                    # usa sidebar para token — lê do campo de URL ou pede
+                if st.button("🚀 Enviar pro GitHub", use_container_width=True,
+                             type="primary", key="push_pricing"):
                     gh_token = st.session_state.get("gh_token_pricing", "")
                     if not gh_token:
-                        st.warning("Cole seu GitHub token no campo abaixo para enviar.")
+                        st.warning("Cole seu token no campo abaixo.")
                     else:
                         repo   = "meninosia2026-beep/aceleracao_vendas"
                         branch = "main"
                         path   = f"data/pricing_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
                         url_gh = f"https://api.github.com/repos/{repo}/contents/{path}"
                         hdrs   = {"Authorization": f"token {gh_token}", "Accept": "application/vnd.github.v3+json"}
-                        enc    = b64.b64encode(csv_bytes).decode("utf-8")
+                        enc    = base64.b64encode(csv_bytes).decode("utf-8")
                         r_gh   = requests.put(url_gh, headers=hdrs,
-                                              data=js.dumps({"message": f"pricing: {path}", "content": enc, "branch": branch}))
+                                              data=json.dumps({"message": f"pricing: {path}",
+                                                               "content": enc, "branch": branch}))
                         if r_gh.status_code in (200, 201):
-                            st.success(f"✅ Enviado para {path}")
+                            st.success(f"✅ Enviado: {path}")
                         else:
                             st.error(f"Erro {r_gh.status_code}: {r_gh.json().get('message')}")
 
-            # campo para token do GitHub (só aparece quando há linhas editadas)
+            with col_b3:
+                if st.button("🔄 Reset edições", use_container_width=True, key="reset_pricing"):
+                    st.session_state.editor_version += 1
+                    st.rerun()
+
             with st.expander("🔑 GitHub Token para envio"):
                 st.text_input("Token", type="password", key="gh_token_pricing",
-                              help="Necessário só para o botão 'Enviar pro GitHub'. Fica só na sessão.")
+                              help="Necessário só para 'Enviar pro GitHub'. Fica apenas na sessão.")
 
         else:
+            # sem edições — mostra botão de reset só se houve edição anterior
             st.markdown("""
-            <div style="margin-top:1rem;padding:12px 16px;background:var(--bg2);
+            <div style="margin-top:.8rem;padding:10px 16px;background:var(--bg2);
                         border:1px solid var(--bdr);border-radius:6px">
               <span style="font-size:.82rem;color:var(--muted)">
-                Preencha a coluna <strong>✏️ Preço novo</strong> nas linhas que deseja alterar para gerar o acionamento.
+                Preencha <strong>✏️ Preço novo</strong> nas linhas que deseja alterar para gerar o acionamento.
               </span>
             </div>
             """, unsafe_allow_html=True)
+
+            if st.button("🔄 Reset edições", key="reset_pricing_empty"):
+                st.session_state.editor_version += 1
+                st.rerun()
 
         st.markdown(f"""
         <div class="footer">
