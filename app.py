@@ -80,6 +80,101 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--bdr2); border-radius: 2px; }
 
+/* ── SIDEBAR FILTROS ─── */
+
+/* multiselect container */
+[data-testid="stMultiSelect"] [data-baseweb="select"] > div {
+  background: var(--bg) !important;
+  border: 1px solid var(--bdr2) !important;
+  border-radius: 4px !important;
+  min-height: 36px !important;
+  box-shadow: none !important;
+}
+[data-testid="stMultiSelect"] [data-baseweb="select"] > div:focus-within {
+  border-color: var(--accent) !important;
+  box-shadow: none !important;
+}
+/* tags de datas */
+[data-baseweb="tag"] {
+  background: var(--bg3) !important;
+  border: 1px solid var(--bdr2) !important;
+  border-radius: 3px !important;
+  padding: 1px 6px !important;
+  height: 22px !important;
+}
+[data-baseweb="tag"] span:first-child {
+  color: var(--txt2) !important;
+  font-size: .72rem !important;
+  font-weight: 600 !important;
+}
+[data-baseweb="tag"] span[role="presentation"] {
+  color: var(--muted) !important;
+}
+/* dropdown */
+[data-baseweb="popover"] [data-baseweb="menu"] {
+  background: var(--bg) !important;
+  border: 1px solid var(--bdr2) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.08) !important;
+}
+[data-baseweb="option"] {
+  background: var(--bg) !important;
+  font-size: .78rem !important;
+  color: var(--txt2) !important;
+  padding: 7px 12px !important;
+}
+[data-baseweb="option"]:hover,
+[aria-selected="true"][data-baseweb="option"] {
+  background: var(--bg2) !important;
+}
+
+/* slider */
+[data-testid="stSlider"] { padding: 0 !important; }
+[data-testid="stSlider"] [role="slider"] {
+  background: var(--accent) !important;
+  border: 2px solid #fff !important;
+  box-shadow: 0 1px 6px rgba(241,16,117,.25) !important;
+  width: 14px !important; height: 14px !important;
+}
+[data-testid="stSlider"] [data-testid="stTickBarMin"],
+[data-testid="stSlider"] [data-testid="stTickBarMax"] {
+  font-size: .7rem !important;
+  color: var(--muted) !important;
+}
+
+/* checkbox */
+[data-testid="stCheckbox"] label {
+  font-size: .82rem !important;
+  color: var(--txt2) !important;
+  font-weight: 500 !important;
+}
+[data-testid="stCheckbox"] [data-baseweb="checkbox"] div {
+  border-color: var(--bdr2) !important;
+  border-radius: 3px !important;
+  background: var(--bg) !important;
+  width: 16px !important; height: 16px !important;
+}
+[data-testid="stCheckbox"] [aria-checked="true"] div {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* botão recarregar sidebar */
+[data-testid="stSidebar"] [data-testid="stButton"] > button {
+  background: var(--bg) !important;
+  border: 1px solid var(--bdr2) !important;
+  color: var(--txt2) !important;
+  font-size: .75rem !important;
+  font-weight: 500 !important;
+  padding: 6px 12px !important;
+  letter-spacing: .2px !important;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] > button:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: var(--bg) !important;
+}
+
 /* HEADER */
 .pg-header {
   padding-bottom: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--bdr);
@@ -389,17 +484,30 @@ def mono_html(v, prefix="", suffix="", dec=0):
 
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown('<div class="sb-label">Fonte de dados</div>', unsafe_allow_html=True)
+    # bloco fonte
+    st.markdown("""
+    <div style="padding:16px 0 4px">
+      <div class="sb-label">Fonte de dados</div>
+    </div>
+    """, unsafe_allow_html=True)
     github_url = st.text_input("", value=GITHUB_RAW_DEFAULT, label_visibility="collapsed")
-    if st.button("↻ Recarregar", use_container_width=True):
+    if st.button("↻  Recarregar dados", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
-    st.divider()
 
     df_raw = load_data(github_url)
     if df_raw.empty:
         st.warning("Nenhum dado. Verifique a URL.")
         st.stop()
+
+    # bloco filtros
+    st.markdown("""
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid #e2e1dc">
+      <div style="font-size:.7rem;font-weight:700;color:#8c8c84;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px">
+        Filtros
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown('<div class="sb-label">Data de viagem</div>', unsafe_allow_html=True)
     datas_disp = sorted(df_raw["data"].dt.date.unique()) if "data" in df_raw.columns else []
@@ -407,23 +515,41 @@ with st.sidebar:
                                 format_func=lambda d: d.strftime("%d/%m/%Y"),
                                 label_visibility="collapsed")
 
+    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-label">Antecedência (dias)</div>', unsafe_allow_html=True)
     ant_min, ant_max = int(df_raw["antecedencia"].min()), int(df_raw["antecedencia"].max())
     ant_range = st.slider("", ant_min, ant_max, (ant_min, ant_max), label_visibility="collapsed")
 
+    st.markdown('<div style="height:4px"></div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-label">Buscar rota</div>', unsafe_allow_html=True)
     rota_busca = st.text_input("", placeholder="ex: SAO-RIO", label_visibility="collapsed")
 
     hide_normal = st.checkbox("Ocultar rotas Normais", value=True)
 
-    st.divider()
-    st.markdown(
-        '<span style="font-size:.67rem;color:#8c8c84;line-height:1.8">'
-        'D1 = ontem completo<br>D5 = 5 dias atrás<br>'
-        'Acel = D1 vs média D2–D5<br><br>'
-        '<b>Score</b> = 40% forecast + 35% occ + 25% acel</span>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("""
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e2e1dc">
+      <div style="font-size:.7rem;font-weight:700;color:#8c8c84;letter-spacing:1.5px;
+                  text-transform:uppercase;margin-bottom:10px">Legenda</div>
+      <table style="width:100%;font-size:.71rem;border-collapse:collapse">
+        <tr style="border-bottom:1px solid #eeede9">
+          <td style="padding:5px 0;color:#8c8c84">D1</td>
+          <td style="padding:5px 0;color:#3d3d38;font-weight:500;text-align:right">ontem completo</td>
+        </tr>
+        <tr style="border-bottom:1px solid #eeede9">
+          <td style="padding:5px 0;color:#8c8c84">D5</td>
+          <td style="padding:5px 0;color:#3d3d38;font-weight:500;text-align:right">5 dias atrás</td>
+        </tr>
+        <tr style="border-bottom:1px solid #eeede9">
+          <td style="padding:5px 0;color:#8c8c84">Acel</td>
+          <td style="padding:5px 0;color:#3d3d38;font-weight:500;text-align:right">D1 vs média D2–D5</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0;color:#8c8c84">Score</td>
+          <td style="padding:5px 0;color:#3d3d38;font-weight:500;text-align:right">40% fc · 35% occ · 25% acel</td>
+        </tr>
+      </table>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ── FILTROS ───────────────────────────────────────────────────────────────────
 df_base = df_raw.copy()
