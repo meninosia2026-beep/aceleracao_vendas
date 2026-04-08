@@ -184,28 +184,39 @@ def load_data(url: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 def prep_acel(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty: return df
+    if df.empty:
+        return df
     df = df.copy()
     int_cols   = ["pax","capacidade_atual","assentos_disponiveis","pax_d1","pax_d2","pax_d3","pax_d4","pax_d5",
                   "pax_hoje_parcial","predict_consenso","pax_faltam_forecast","predict_time_series","predict_eixo_sentido"]
     float_cols = ["occ_atual","tkm_comp","aceleracao_pct","aceleracao_abs","tendencia_linear",
                   "pct_atingimento_forecast","media_d2_d5","load_factor_atual"]
     for c in int_cols:
-        if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
     for c in float_cols:
-        if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce")
-    if "data" in df.columns: df["data"] = pd.to_datetime(df["data"])
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+    if "data" in df.columns:
+        df["data"] = pd.to_datetime(df["data"])
     return df
 
 def prep_curva(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty: return df
+    if df.empty:
+        return df
     df = df.copy()
-    for c in ["occ_atual","lf_pascoa_2026","lf_atual","ratio","tkm_comp",
-              "preco_base","preco_est_draft","preco_praticado","mult_final","price_cc"]:
-        if c in df.columns: df[c] = pd.to_numeric(df[c].replace("null", None), errors="coerce")
+    for c in [
+        "occ_atual","lf_pascoa_2026","lf_atual","ratio","tkm_comp",
+        "preco_base","preco_est_draft","preco_praticado","mult_final","price_cc",
+        "tkm_atual","mult_flutuacao"
+    ]:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c].replace("null", None), errors="coerce")
     for c in ["pax","capacidade_atual","vagas_restantes","antecedencia"]:
-        if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
-    if "data" in df.columns: df["data"] = pd.to_datetime(df["data"])
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
+    if "data" in df.columns:
+        df["data"] = pd.to_datetime(df["data"])
     return df
 
 # ── SCORE ─────────────────────────────────────────────────────────────────────
@@ -233,7 +244,8 @@ def occ_html(v):
         return (f'<div class="occ-row"><div class="occ-track">'
                 f'<div class="occ-fill" style="width:{pct:.0f}%;background:{col}"></div></div>'
                 f'<span class="om" style="color:{col}">{pct:.0f}%</span></div>')
-    except: return "—"
+    except:
+        return "—"
 
 def spark_html(d5, d4, d3, d2, d1):
     vals = [float(x) if str(x) not in ("nan","") else 0 for x in [d5,d4,d3,d2,d1]]
@@ -250,10 +262,13 @@ def spark_html(d5, d4, d3, d2, d1):
 def acel_html(pct):
     try:
         v = float(pct)
-        if v>30:  return f'<span class="ng">+{v:.0f}%</span>'
-        if v<-30: return f'<span class="nr">{v:.0f}%</span>'
+        if v>30:
+            return f'<span class="ng">+{v:.0f}%</span>'
+        if v<-30:
+            return f'<span class="nr">{v:.0f}%</span>'
         return f'<span class="nm">{v:.0f}%</span>'
-    except: return '<span class="nm">—</span>'
+    except:
+        return '<span class="nm">—</span>'
 
 def fc_html(pct, faltam):
     try:
@@ -262,21 +277,27 @@ def fc_html(pct, faltam):
         ft  = (f'<br><span class="nm" style="font-size:.62rem">faltam {int(faltam)}</span>'
                if str(faltam) not in ("nan","") else "")
         return f'<span class="{cls}">{v:.0f}%</span>{ft}'
-    except: return "—"
+    except:
+        return "—"
 
 def tend_html(v):
     try:
         f = float(v)
-        if f>0.5:  return f'<span class="ng">↑ {f:.1f}</span>'
-        if f<-0.5: return f'<span class="nr">↓ {f:.1f}</span>'
+        if f>0.5:
+            return f'<span class="ng">↑ {f:.1f}</span>'
+        if f<-0.5:
+            return f'<span class="nr">↓ {f:.1f}</span>'
         return f'<span class="nm">→ {f:.1f}</span>'
-    except: return '<span class="nm">—</span>'
+    except:
+        return '<span class="nm">—</span>'
 
 def mono_html(v, prefix="", suffix="", dec=0):
     try:
-        if str(v) in ("nan",""): return '<span class="nm">—</span>'
+        if str(v) in ("nan",""):
+            return '<span class="nm">—</span>'
         return f'<span class="nt">{prefix}{float(v):,.{dec}f}{suffix}</span>'
-    except: return '<span class="nm">—</span>'
+    except:
+        return '<span class="nm">—</span>'
 
 def score_bar(score):
     try:
@@ -284,7 +305,8 @@ def score_bar(score):
         return (f'<div class="score-wrap"><div class="score-track">'
                 f'<div class="score-fill" style="width:{pct:.0f}%"></div></div>'
                 f'<span class="score-val">{pct:.0f}</span></div>')
-    except: return "—"
+    except:
+        return "—"
 
 def lf_bar(v, ref=None):
     try:
@@ -294,16 +316,21 @@ def lf_bar(v, ref=None):
         return (f'<div class="occ-row"><div class="occ-track" style="width:52px">'
                 f'<div class="occ-fill" style="width:{pct:.0f}%;background:{col}"></div></div>'
                 f'<span class="om" style="color:{col}">{float(v):.0%}</span></div>')
-    except: return "—"
+    except:
+        return "—"
 
 def ratio_html(v):
     try:
         f = float(v)
-        if f>=1.2: return f'<span class="ng" style="font-weight:700">{f:.2f}x</span>'
-        if f>=1.0: return f'<span class="ng">{f:.2f}x</span>'
-        if f>=0.8: return f'<span class="no">{f:.2f}x</span>'
+        if f>=1.2:
+            return f'<span class="ng" style="font-weight:700">{f:.2f}x</span>'
+        if f>=1.0:
+            return f'<span class="ng">{f:.2f}x</span>'
+        if f>=0.8:
+            return f'<span class="no">{f:.2f}x</span>'
         return f'<span class="nr">{f:.2f}x</span>'
-    except: return "—"
+    except:
+        return "—"
 
 def turno_badge(t):
     cores = {"MANHA":"#f97316","TARDE":"#2563eb","NOITE":"#7c3aed","MADRUGADA":"#374151"}
@@ -409,12 +436,12 @@ with tab1:
         def cnt_kw(kw): return int(df_acel_raw["sinal"].str.contains(kw, na=False).sum())
         kpis = [
             ("URGENTE",      cnt_kw("URGENTE"),       "#c0392b", "c-red"),
-            ("ATENÇÃO",      cnt_kw("PROXIMA"),        "#d35400", "c-ora"),
-            ("LOTANDO",      cnt_kw("LOTANDO"),        "#e74c3c", "c-red2"),
+            ("ATENÇÃO",      cnt_kw("PROXIMA"),       "#d35400", "c-ora"),
+            ("LOTANDO",      cnt_kw("LOTANDO"),       "#e74c3c", "c-red2"),
             ("OPORTUNIDADE", cnt_kw("OPORTUNIDADE"),  "#2d6a4f", "c-grn"),
-            ("MONITORAR",    cnt_kw("MONITORAR"),      "#b7950b", "c-yel"),
-            ("DESACEL.",     cnt_kw("DESACEL"),        "#2c3e7a", "c-blu"),
-            ("TOTAL ROTAS",  len(df_acel_raw),         "#b8b8b0", "c-mut"),
+            ("MONITORAR",    cnt_kw("MONITORAR"),     "#b7950b", "c-yel"),
+            ("DESACEL.",     cnt_kw("DESACEL"),       "#2c3e7a", "c-blu"),
+            ("TOTAL ROTAS",  len(df_acel_raw),        "#b8b8b0", "c-mut"),
         ]
         strip = '<div class="kpi-strip" style="grid-template-columns:repeat(7,1fr)">'
         for lbl, val, dot, cls in kpis:
@@ -514,7 +541,8 @@ with tab1:
             for _, row in df_view.iterrows():
                 sinal = row["sinal"]
                 if sinal != cur:
-                    cur = sinal; rank[cur] = 0
+                    cur = sinal
+                    rank[cur] = 0
                     m   = SINAL_META.get(cur, SINAL_META["⚪ NORMAL"])
                     cnt_g = int((df_view["sinal"] == cur).sum())
                     rows += (f'<tr class="grp-sep"><td colspan="14">'
@@ -612,19 +640,25 @@ with tab2:
         """, unsafe_allow_html=True)
 
         # Gráfico LF atual vs referência
-        df_chart = (df_c.groupby("sentido")
-                    .agg(lf_atual=("lf_atual","mean"), lf_ref=("lf_pascoa_2026","mean"),
-                         ratio=("ratio","mean"), occ=("occ_atual","mean"))
-                    .reset_index()
-                    .sort_values("occ", ascending=False)
-                    .head(12))
+        df_chart = (
+            df_c.groupby("sentido")
+                .agg(
+                    lf_atual=("lf_atual","mean"),
+                    lf_ref=("lf_pascoa_2026","mean"),
+                    ratio=("ratio","mean"),
+                    occ=("occ_atual","mean")
+                )
+                .reset_index()
+                .sort_values("occ", ascending=False)
+                .head(12)
+        )
         max_lf = max(df_chart["lf_atual"].max(), df_chart["lf_ref"].max(), 0.01)
 
         chart_rows = ""
         for _, r in df_chart.iterrows():
             lf_a  = float(r["lf_atual"]) if pd.notna(r["lf_atual"]) else 0
             lf_r  = float(r["lf_ref"])   if pd.notna(r["lf_ref"])   else 0
-            rat   = float(r["ratio"])     if pd.notna(r["ratio"])    else 0
+            rat   = float(r["ratio"])    if pd.notna(r["ratio"])    else 0
             w_a   = min(lf_a / max_lf * 100, 100)
             w_r   = min(lf_r / max_lf * 100, 100)
             col_a = "#2d6a4f" if lf_a >= lf_r else "#c0392b"
@@ -664,8 +698,13 @@ with tab2:
         col_f1, col_f2, col_f3 = st.columns(3)
         with col_f1:
             datas_c = sorted(df_c["data"].dt.date.unique())
-            datas_c_sel = st.multiselect("Data", options=datas_c, default=datas_c,
-                                         format_func=lambda d: d.strftime("%d/%m"), key="datas_curva")
+            datas_c_sel = st.multiselect(
+                "Data",
+                options=datas_c,
+                default=datas_c,
+                format_func=lambda d: d.strftime("%d/%m"),
+                key="datas_curva"
+            )
         with col_f2:
             turnos_c   = sorted(df_c["turno"].dropna().unique())
             turnos_sel = st.multiselect("Turno", options=turnos_c, default=turnos_c, key="turnos_curva")
@@ -673,9 +712,12 @@ with tab2:
             rota_c = st.text_input("Buscar rota", placeholder="ex: BHZ-RIO", key="rota_curva")
 
         df_cv = df_c.copy()
-        if datas_c_sel:  df_cv = df_cv[df_cv["data"].dt.date.isin(datas_c_sel)]
-        if turnos_sel:   df_cv = df_cv[df_cv["turno"].isin(turnos_sel)]
-        if rota_c:       df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
+        if datas_c_sel:
+            df_cv = df_cv[df_cv["data"].dt.date.isin(datas_c_sel)]
+        if turnos_sel:
+            df_cv = df_cv[df_cv["turno"].isin(turnos_sel)]
+        if rota_c:
+            df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
         df_cv = df_cv.sort_values(["occ_atual","ratio"], ascending=[False, False])
 
         st.markdown(f"""
@@ -700,9 +742,12 @@ with tab2:
               <td>{lf_bar(row.get('lf_atual',0), row.get('lf_pascoa_2026'))}</td>
               <td>{lf_bar(row.get('lf_pascoa_2026',0))}</td>
               <td>{ratio_html(row.get('ratio'))}</td>
+              <td>{mono_html(row.get('tkm_atual'), prefix='R$', dec=0)}</td>
               <td>{mono_html(row.get('tkm_comp'), prefix='R$', dec=0)}</td>
+              <td>{mono_html(row.get('price_cc'), prefix='R$', dec=0)}</td>
               <td>{mono_html(row.get('preco_praticado'), prefix='R$', dec=2)}</td>
               <td>{mono_html(row.get('mult_final'), suffix='x', dec=3)}</td>
+              <td>{mono_html(row.get('mult_flutuacao'), suffix='x', dec=3)}</td>
             </tr>"""
 
         st.markdown(f"""
@@ -714,7 +759,12 @@ with tab2:
             <th class="sort-active">LF Atual</th>
             <th>LF Referência</th>
             <th class="sort-active">Ratio</th>
-            <th>Ticket</th><th>Preço prat.</th><th>Mult.</th>
+            <th>TKM Atual</th>
+            <th>TKM Comp</th>
+            <th>Price CC</th>
+            <th>Preço prat.</th>
+            <th>Mult.</th>
+            <th>Mult Flut.</th>
           </tr></thead>
           <tbody>{rows_c}</tbody>
         </table></div>
