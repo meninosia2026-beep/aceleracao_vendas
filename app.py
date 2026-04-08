@@ -67,13 +67,21 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
 
 [data-testid="stButton"] > button {
   background: var(--bg) !important; border: 1px solid var(--bdr2) !important;
-  color: var(--txt2) !important; font-family: 'Inter', sans-serif !important;
-  font-size: .78rem !important; font-weight: 500 !important; border-radius: 4px !important;
-  transition: all .12s !important;
+  color: var(--muted) !important; font-family: 'Inter', sans-serif !important;
+  font-size: .75rem !important; font-weight: 500 !important; border-radius: 20px !important;
+  padding: 4px 14px !important; line-height: 1.4 !important;
+  transition: all .12s !important; white-space: nowrap !important;
 }
-[data-testid="stButton"] > button:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+[data-testid="stButton"] > button:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: rgba(241,16,117,.04) !important;
+}
 [data-testid="stButton"] > button[kind="primary"] {
-  background: var(--txt) !important; color: var(--bg) !important; border-color: var(--txt) !important;
+  background: rgba(241,16,117,.08) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  font-weight: 600 !important;
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -147,12 +155,22 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
   font-size: .82rem !important;
   color: var(--txt2) !important;
   font-weight: 500 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+}
+[data-testid="stCheckbox"] [data-baseweb="checkbox"] {
+  align-items: center !important;
 }
 [data-testid="stCheckbox"] [data-baseweb="checkbox"] div {
   border-color: var(--bdr2) !important;
   border-radius: 3px !important;
   background: var(--bg) !important;
-  width: 16px !important; height: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0 !important;
 }
 [data-testid="stCheckbox"] [aria-checked="true"] div {
   background: var(--accent) !important;
@@ -168,6 +186,7 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1rem 0; 
   font-weight: 500 !important;
   padding: 6px 12px !important;
   letter-spacing: .2px !important;
+  border-radius: 4px !important;
 }
 [data-testid="stSidebar"] [data-testid="stButton"] > button:hover {
   border-color: var(--accent) !important;
@@ -526,30 +545,22 @@ with st.sidebar:
 
     hide_normal = st.checkbox("Ocultar rotas Normais", value=True)
 
-    st.markdown("""
-    <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e2e1dc">
-      <div style="font-size:.7rem;font-weight:700;color:#8c8c84;letter-spacing:1.5px;
-                  text-transform:uppercase;margin-bottom:10px">Legenda</div>
-      <table style="width:100%;font-size:.71rem;border-collapse:collapse">
-        <tr style="border-bottom:1px solid #eeede9">
-          <td style="padding:5px 0;color:#8c8c84">D1</td>
-          <td style="padding:5px 0;color:#3d3d38;font-weight:500;text-align:right">ontem completo</td>
-        </tr>
-        <tr style="border-bottom:1px solid #eeede9">
-          <td style="padding:5px 0;color:#8c8c84">D5</td>
-          <td style="padding:5px 0;color:#3d3d38;font-weight:500;text-align:right">5 dias atrás</td>
-        </tr>
-        <tr style="border-bottom:1px solid #eeede9">
-          <td style="padding:5px 0;color:#8c8c84">Acel</td>
-          <td style="padding:5px 0;color:#3d3d38;font-weight:500;text-align:right">D1 vs média D2–D5</td>
-        </tr>
-        <tr>
-          <td style="padding:5px 0;color:#8c8c84">Score</td>
-          <td style="padding:5px 0;color:#3d3d38;font-weight:500;text-align:right">40% fc · 35% occ · 25% acel</td>
-        </tr>
-      </table>
-    </div>
-    """, unsafe_allow_html=True)
+    st.divider()
+    st.markdown(
+        '<div style="font-size:.7rem;font-weight:700;color:#8c8c84;letter-spacing:1.5px;'
+        'text-transform:uppercase;margin-bottom:10px">Legenda</div>'
+        '<div style="font-size:.71rem;color:#8c8c84">'
+        '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eeede9">'
+        '<span>D1</span><span style="color:#3d3d38;font-weight:500">ontem completo</span></div>'
+        '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eeede9">'
+        '<span>D5</span><span style="color:#3d3d38;font-weight:500">5 dias atrás</span></div>'
+        '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eeede9">'
+        '<span>Acel</span><span style="color:#3d3d38;font-weight:500">D1 vs média D2–D5</span></div>'
+        '<div style="display:flex;justify-content:space-between;padding:4px 0">'
+        '<span>Score</span><span style="color:#3d3d38;font-weight:500">40% fc · 35% occ · 25% acel</span></div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 # ── FILTROS ───────────────────────────────────────────────────────────────────
 df_base = df_raw.copy()
@@ -646,30 +657,28 @@ st.session_state.chips = st.session_state.chips.intersection(sinais_pres)
 if not st.session_state.chips:
     st.session_state.chips = set(sinais_pres)
 
-nav_html = '<div class="nav-bar">'
-for sinal in sinais_pres:
-    m     = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
-    ativo = sinal in st.session_state.chips
-    cnt_s = int((df_base["sinal"] == sinal).sum())
-    act   = " active" if ativo else ""
-    nav_html += (f'<div class="nav-item{act}">'
-                 f'<span class="sinal-dot" style="background:{m["dot"]}"></span>'
-                 f'{m["short"]} <span class="nav-count">{cnt_s}</span></div>')
-nav_html += '</div>'
-st.markdown(nav_html, unsafe_allow_html=True)
+# ── CHIPS ─────────────────────────────────────────────────────────────────────
+sinais_pres = sorted(df_base["sinal"].dropna().unique(), key=lambda s: SINAL_ORDER.get(s, 99))
 
-chip_cols = st.columns(len(sinais_pres) + 1)
+if "chips" not in st.session_state:
+    st.session_state.chips = set(sinais_pres)
+st.session_state.chips = st.session_state.chips.intersection(sinais_pres)
+if not st.session_state.chips:
+    st.session_state.chips = set(sinais_pres)
+
+# linha divisória + container dos chips em flex
+st.markdown('<div style="border-top:1px solid #e2e1dc;padding-top:14px;margin-bottom:6px"></div>',
+            unsafe_allow_html=True)
+
+chip_cols = st.columns(len(sinais_pres))
 for i, sinal in enumerate(sinais_pres):
     m     = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
     ativo = sinal in st.session_state.chips
     cnt_s = int((df_base["sinal"] == sinal).sum())
     with chip_cols[i]:
-        if st.button(
-            f"{'●' if ativo else '○'} {m['short']} ({cnt_s})",
-            key=f"chip_{i}",
-            use_container_width=True,
-            type="primary" if ativo else "secondary",
-        ):
+        label = f'● {m["short"]} {cnt_s}' if ativo else f'○ {m["short"]} {cnt_s}'
+        if st.button(label, key=f"chip_{i}", use_container_width=True,
+                     type="primary" if ativo else "secondary"):
             if ativo and len(st.session_state.chips) > 1:
                 st.session_state.chips.discard(sinal)
             else:
