@@ -429,7 +429,7 @@ def calcular_score(df: pd.DataFrame) -> pd.DataFrame:
     a_min, a_max = acel.min(), acel.max()
     acel_norm = (acel - a_min) / (a_max - a_min + 1e-9)
 
-    df["_score"] = (0.40 * fc) + (0.35 * occ) + (0.25 * acel_norm)
+    df["_score"] = (0.45 * occ) + (0.35 * fc) + (0.20 * acel_norm)
     return df
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
@@ -557,7 +557,7 @@ with st.sidebar:
         '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eeede9">'
         '<span>Acel</span><span style="color:#3d3d38;font-weight:500">D1 vs média D2–D5</span></div>'
         '<div style="display:flex;justify-content:space-between;padding:4px 0">'
-        '<span>Score</span><span style="color:#3d3d38;font-weight:500">40% fc · 35% occ · 25% acel</span></div>'
+        '<span>Score</span><span style="color:#3d3d38;font-weight:500">45% occ · 35% fc · 20% acel</span></div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -704,7 +704,7 @@ st.markdown("""
   <span class="sort-tag">▼ Forecast %</span>
   <span class="sort-tag">▼ Ocupação</span>
   <span class="sort-tag">▼ Aceleração</span>
-  &nbsp; dentro de cada grupo · score ponderado 40 / 35 / 25
+  &nbsp; dentro de cada grupo · score ponderado 45 / 35 / 20
 </div>
 """, unsafe_allow_html=True)
 
