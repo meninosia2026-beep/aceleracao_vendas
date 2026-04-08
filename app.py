@@ -4,8 +4,9 @@ import requests
 import io
 from datetime import datetime
 
-GITHUB_RAW_ACEL  = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/alerta_aceleracao.csv"
-GITHUB_RAW_CURVA = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado.csv"
+GITHUB_RAW_ACEL    = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/alerta_aceleracao.csv"
+GITHUB_RAW_CURVA   = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado.csv"
+GITHUB_RAW_PRICING = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/pricing_decisoes.csv"
 
 st.set_page_config(page_title="Farol PAX", page_icon="🚦", layout="wide", initial_sidebar_state="expanded")
 
@@ -184,39 +185,28 @@ def load_data(url: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 def prep_acel(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty:
-        return df
+    if df.empty: return df
     df = df.copy()
     int_cols   = ["pax","capacidade_atual","assentos_disponiveis","pax_d1","pax_d2","pax_d3","pax_d4","pax_d5",
                   "pax_hoje_parcial","predict_consenso","pax_faltam_forecast","predict_time_series","predict_eixo_sentido"]
     float_cols = ["occ_atual","tkm_comp","aceleracao_pct","aceleracao_abs","tendencia_linear",
                   "pct_atingimento_forecast","media_d2_d5","load_factor_atual"]
     for c in int_cols:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
+        if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
     for c in float_cols:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors="coerce")
-    if "data" in df.columns:
-        df["data"] = pd.to_datetime(df["data"])
+        if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce")
+    if "data" in df.columns: df["data"] = pd.to_datetime(df["data"])
     return df
 
 def prep_curva(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty:
-        return df
+    if df.empty: return df
     df = df.copy()
-    for c in [
-        "occ_atual","lf_pascoa_2026","lf_atual","ratio","tkm_comp",
-        "preco_base","preco_est_draft","preco_praticado","mult_final","price_cc",
-        "tkm_atual","mult_flutuacao"
-    ]:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c].replace("null", None), errors="coerce")
+    for c in ["occ_atual","lf_pascoa_2026","lf_atual","ratio","tkm_comp",
+              "preco_base","preco_est_draft","preco_praticado","mult_final","price_cc"]:
+        if c in df.columns: df[c] = pd.to_numeric(df[c].replace("null", None), errors="coerce")
     for c in ["pax","capacidade_atual","vagas_restantes","antecedencia"]:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
-    if "data" in df.columns:
-        df["data"] = pd.to_datetime(df["data"])
+        if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
+    if "data" in df.columns: df["data"] = pd.to_datetime(df["data"])
     return df
 
 # ── SCORE ─────────────────────────────────────────────────────────────────────
@@ -244,8 +234,7 @@ def occ_html(v):
         return (f'<div class="occ-row"><div class="occ-track">'
                 f'<div class="occ-fill" style="width:{pct:.0f}%;background:{col}"></div></div>'
                 f'<span class="om" style="color:{col}">{pct:.0f}%</span></div>')
-    except:
-        return "—"
+    except: return "—"
 
 def spark_html(d5, d4, d3, d2, d1):
     vals = [float(x) if str(x) not in ("nan","") else 0 for x in [d5,d4,d3,d2,d1]]
@@ -262,13 +251,10 @@ def spark_html(d5, d4, d3, d2, d1):
 def acel_html(pct):
     try:
         v = float(pct)
-        if v>30:
-            return f'<span class="ng">+{v:.0f}%</span>'
-        if v<-30:
-            return f'<span class="nr">{v:.0f}%</span>'
+        if v>30:  return f'<span class="ng">+{v:.0f}%</span>'
+        if v<-30: return f'<span class="nr">{v:.0f}%</span>'
         return f'<span class="nm">{v:.0f}%</span>'
-    except:
-        return '<span class="nm">—</span>'
+    except: return '<span class="nm">—</span>'
 
 def fc_html(pct, faltam):
     try:
@@ -277,27 +263,21 @@ def fc_html(pct, faltam):
         ft  = (f'<br><span class="nm" style="font-size:.62rem">faltam {int(faltam)}</span>'
                if str(faltam) not in ("nan","") else "")
         return f'<span class="{cls}">{v:.0f}%</span>{ft}'
-    except:
-        return "—"
+    except: return "—"
 
 def tend_html(v):
     try:
         f = float(v)
-        if f>0.5:
-            return f'<span class="ng">↑ {f:.1f}</span>'
-        if f<-0.5:
-            return f'<span class="nr">↓ {f:.1f}</span>'
+        if f>0.5:  return f'<span class="ng">↑ {f:.1f}</span>'
+        if f<-0.5: return f'<span class="nr">↓ {f:.1f}</span>'
         return f'<span class="nm">→ {f:.1f}</span>'
-    except:
-        return '<span class="nm">—</span>'
+    except: return '<span class="nm">—</span>'
 
 def mono_html(v, prefix="", suffix="", dec=0):
     try:
-        if str(v) in ("nan",""):
-            return '<span class="nm">—</span>'
+        if str(v) in ("nan",""): return '<span class="nm">—</span>'
         return f'<span class="nt">{prefix}{float(v):,.{dec}f}{suffix}</span>'
-    except:
-        return '<span class="nm">—</span>'
+    except: return '<span class="nm">—</span>'
 
 def score_bar(score):
     try:
@@ -305,8 +285,7 @@ def score_bar(score):
         return (f'<div class="score-wrap"><div class="score-track">'
                 f'<div class="score-fill" style="width:{pct:.0f}%"></div></div>'
                 f'<span class="score-val">{pct:.0f}</span></div>')
-    except:
-        return "—"
+    except: return "—"
 
 def lf_bar(v, ref=None):
     try:
@@ -316,21 +295,16 @@ def lf_bar(v, ref=None):
         return (f'<div class="occ-row"><div class="occ-track" style="width:52px">'
                 f'<div class="occ-fill" style="width:{pct:.0f}%;background:{col}"></div></div>'
                 f'<span class="om" style="color:{col}">{float(v):.0%}</span></div>')
-    except:
-        return "—"
+    except: return "—"
 
 def ratio_html(v):
     try:
         f = float(v)
-        if f>=1.2:
-            return f'<span class="ng" style="font-weight:700">{f:.2f}x</span>'
-        if f>=1.0:
-            return f'<span class="ng">{f:.2f}x</span>'
-        if f>=0.8:
-            return f'<span class="no">{f:.2f}x</span>'
+        if f>=1.2: return f'<span class="ng" style="font-weight:700">{f:.2f}x</span>'
+        if f>=1.0: return f'<span class="ng">{f:.2f}x</span>'
+        if f>=0.8: return f'<span class="no">{f:.2f}x</span>'
         return f'<span class="nr">{f:.2f}x</span>'
-    except:
-        return "—"
+    except: return "—"
 
 def turno_badge(t):
     cores = {"MANHA":"#f97316","TARDE":"#2563eb","NOITE":"#7c3aed","MADRUGADA":"#374151"}
@@ -412,7 +386,7 @@ if not df_base.empty:
         df_base = df_base[df_base["sinal"] != "⚪ NORMAL"]
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab1, tab2 = st.tabs(["🚦  Aceleração PAX", "📈  Curva de Feriado"])
+tab1, tab2, tab3 = st.tabs(["🚦  Aceleração PAX", "📈  Curva de Feriado", "✏️  Editor de Pricing"])
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — ACELERAÇÃO PAX
@@ -436,12 +410,12 @@ with tab1:
         def cnt_kw(kw): return int(df_acel_raw["sinal"].str.contains(kw, na=False).sum())
         kpis = [
             ("URGENTE",      cnt_kw("URGENTE"),       "#c0392b", "c-red"),
-            ("ATENÇÃO",      cnt_kw("PROXIMA"),       "#d35400", "c-ora"),
-            ("LOTANDO",      cnt_kw("LOTANDO"),       "#e74c3c", "c-red2"),
+            ("ATENÇÃO",      cnt_kw("PROXIMA"),        "#d35400", "c-ora"),
+            ("LOTANDO",      cnt_kw("LOTANDO"),        "#e74c3c", "c-red2"),
             ("OPORTUNIDADE", cnt_kw("OPORTUNIDADE"),  "#2d6a4f", "c-grn"),
-            ("MONITORAR",    cnt_kw("MONITORAR"),     "#b7950b", "c-yel"),
-            ("DESACEL.",     cnt_kw("DESACEL"),       "#2c3e7a", "c-blu"),
-            ("TOTAL ROTAS",  len(df_acel_raw),        "#b8b8b0", "c-mut"),
+            ("MONITORAR",    cnt_kw("MONITORAR"),      "#b7950b", "c-yel"),
+            ("DESACEL.",     cnt_kw("DESACEL"),        "#2c3e7a", "c-blu"),
+            ("TOTAL ROTAS",  len(df_acel_raw),         "#b8b8b0", "c-mut"),
         ]
         strip = '<div class="kpi-strip" style="grid-template-columns:repeat(7,1fr)">'
         for lbl, val, dot, cls in kpis:
@@ -541,8 +515,7 @@ with tab1:
             for _, row in df_view.iterrows():
                 sinal = row["sinal"]
                 if sinal != cur:
-                    cur = sinal
-                    rank[cur] = 0
+                    cur = sinal; rank[cur] = 0
                     m   = SINAL_META.get(cur, SINAL_META["⚪ NORMAL"])
                     cnt_g = int((df_view["sinal"] == cur).sum())
                     rows += (f'<tr class="grp-sep"><td colspan="14">'
@@ -596,7 +569,7 @@ with tab1:
             </div>""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — CURVA DE FERIADO
+# TAB 2 — CURVA DE FERIADO + EDITOR DE PRICING
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
     agora2 = datetime.now().strftime("%d/%m/%Y %H:%M")
@@ -604,7 +577,7 @@ with tab2:
     <div class="pg-header">
       <div>
         <div class="pg-title">Curva de Feriado</div>
-        <div class="pg-sub">Comparativo de load factor atual vs referência · por rota e turno</div>
+        <div class="pg-sub">Comparativo de load factor atual vs referência · edite o preço desejado diretamente na tabela</div>
       </div>
       <div class="upill"><span class="dot"></span>Atualizado em {agora2} · via Databricks</div>
     </div>
@@ -615,14 +588,14 @@ with tab2:
     else:
         df_c = df_curva_raw.copy()
 
-        # KPIs
-        lf_med   = df_c["lf_atual"].mean()
-        lf_ref   = df_c["lf_pascoa_2026"].mean()
-        rat_med  = df_c["ratio"].mean()
-        acima    = int((df_c["ratio"] >= 1).sum())
-        abaixo   = int((df_c["ratio"] < 1).sum())
-        rat_cls  = "c-grn" if rat_med >= 1 else "c-red"
-        rat_dot  = "#2d6a4f" if rat_med >= 1 else "#c0392b"
+        # ── KPIs ──────────────────────────────────────────────────────────────
+        lf_med  = df_c["lf_atual"].mean()
+        lf_ref  = df_c["lf_pascoa_2026"].mean()
+        rat_med = df_c["ratio"].mean()
+        acima   = int((df_c["ratio"] >= 1).sum())
+        abaixo  = int((df_c["ratio"] < 1).sum())
+        rat_cls = "c-grn" if rat_med >= 1 else "c-red"
+        rat_dot = "#2d6a4f" if rat_med >= 1 else "#c0392b"
 
         st.markdown(f"""
         <div class="kpi-strip" style="grid-template-columns:repeat(5,1fr)">
@@ -639,39 +612,32 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
-        # Gráfico LF atual vs referência
-        df_chart = (
-            df_c.groupby("sentido")
-                .agg(
-                    lf_atual=("lf_atual","mean"),
-                    lf_ref=("lf_pascoa_2026","mean"),
-                    ratio=("ratio","mean"),
-                    occ=("occ_atual","mean")
-                )
-                .reset_index()
-                .sort_values("occ", ascending=False)
-                .head(12)
-        )
+        # ── Gráfico ───────────────────────────────────────────────────────────
+        df_chart = (df_c.groupby("sentido")
+                    .agg(lf_atual=("lf_atual","mean"), lf_ref=("lf_pascoa_2026","mean"),
+                         ratio=("ratio","mean"), occ=("occ_atual","mean"))
+                    .reset_index()
+                    .sort_values("occ", ascending=False)
+                    .head(12))
         max_lf = max(df_chart["lf_atual"].max(), df_chart["lf_ref"].max(), 0.01)
 
         chart_rows = ""
         for _, r in df_chart.iterrows():
             lf_a  = float(r["lf_atual"]) if pd.notna(r["lf_atual"]) else 0
             lf_r  = float(r["lf_ref"])   if pd.notna(r["lf_ref"])   else 0
-            rat   = float(r["ratio"])    if pd.notna(r["ratio"])    else 0
+            rat   = float(r["ratio"])     if pd.notna(r["ratio"])    else 0
             w_a   = min(lf_a / max_lf * 100, 100)
             w_r   = min(lf_r / max_lf * 100, 100)
             col_a = "#2d6a4f" if lf_a >= lf_r else "#c0392b"
             rat_c = "ng" if rat >= 1 else "nr"
             chart_rows += (
                 f'<div class="hbar-row">'
-                f'<div style="width:80px;text-align:right;flex-shrink:0">'
-                f'<span class="hbar-lbl">{r["sentido"]}</span></div>'
+                f'<div style="width:80px;text-align:right;flex-shrink:0"><span class="hbar-lbl">{r["sentido"]}</span></div>'
                 f'<div style="flex:1;display:flex;flex-direction:column;gap:3px">'
-                f'<div class="hbar-track" style="height:13px" title="LF Atual {lf_a:.1%}">'
+                f'<div class="hbar-track" style="height:13px">'
                 f'<div class="hbar-fill" style="width:{w_a:.1f}%;background:{col_a}">'
                 f'<span class="hbar-val" style="font-size:.6rem">{lf_a:.0%}</span></div></div>'
-                f'<div class="hbar-track" style="height:13px;background:#e8e8ed" title="LF Ref {lf_r:.1%}">'
+                f'<div class="hbar-track" style="height:13px;background:#e8e8ed">'
                 f'<div class="hbar-fill" style="width:{w_r:.1f}%;background:#9ab8d4">'
                 f'<span class="hbar-val" style="font-size:.6rem;color:#1a1a18">{lf_r:.0%}</span></div></div>'
                 f'</div>'
@@ -694,17 +660,12 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
-        # Filtros da aba 2
+        # ── Filtros ───────────────────────────────────────────────────────────
         col_f1, col_f2, col_f3 = st.columns(3)
         with col_f1:
-            datas_c = sorted(df_c["data"].dt.date.unique())
-            datas_c_sel = st.multiselect(
-                "Data",
-                options=datas_c,
-                default=datas_c,
-                format_func=lambda d: d.strftime("%d/%m"),
-                key="datas_curva"
-            )
+            datas_c     = sorted(df_c["data"].dt.date.unique())
+            datas_c_sel = st.multiselect("Data", options=datas_c, default=datas_c,
+                                         format_func=lambda d: d.strftime("%d/%m"), key="datas_curva")
         with col_f2:
             turnos_c   = sorted(df_c["turno"].dropna().unique())
             turnos_sel = st.multiselect("Turno", options=turnos_c, default=turnos_c, key="turnos_curva")
@@ -712,66 +673,163 @@ with tab2:
             rota_c = st.text_input("Buscar rota", placeholder="ex: BHZ-RIO", key="rota_curva")
 
         df_cv = df_c.copy()
-        if datas_c_sel:
-            df_cv = df_cv[df_cv["data"].dt.date.isin(datas_c_sel)]
-        if turnos_sel:
-            df_cv = df_cv[df_cv["turno"].isin(turnos_sel)]
-        if rota_c:
-            df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
-        df_cv = df_cv.sort_values(["occ_atual","ratio"], ascending=[False, False])
+        if datas_c_sel: df_cv = df_cv[df_cv["data"].dt.date.isin(datas_c_sel)]
+        if turnos_sel:  df_cv = df_cv[df_cv["turno"].isin(turnos_sel)]
+        if rota_c:      df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
+        df_cv = df_cv.sort_values(["occ_atual","ratio"], ascending=[False, False]).reset_index(drop=True)
 
-        st.markdown(f"""
-        <div class="sort-info">Ordenado por &nbsp;
-          <span class="sort-tag">▼ Ocupação</span>
-          <span class="sort-tag">▼ Ratio</span>
-          &nbsp;· {len(df_cv)} linhas
-        </div>""", unsafe_allow_html=True)
-
-        rows_c = ""
-        for _, row in df_cv.iterrows():
-            dt = row["data"].strftime("%d/%m") if pd.notna(row.get("data")) else "—"
-            rows_c += f"""<tr>
-              <td><span class="rname">{row.get('sentido','—')}</span><br>
-                  <span class="rsub">{row.get('rota_principal','')}</span></td>
-              <td><span class="nt">{dt}</span></td>
-              <td>{turno_badge(row.get('turno','—'))}</td>
-              <td>{mono_html(row.get('antecedencia'), suffix='d')}</td>
-              <td>{occ_html(row.get('occ_atual',0))}</td>
-              <td>{mono_html(row.get('pax'))}</td>
-              <td>{mono_html(row.get('vagas_restantes'))}</td>
-              <td>{lf_bar(row.get('lf_atual',0), row.get('lf_pascoa_2026'))}</td>
-              <td>{lf_bar(row.get('lf_pascoa_2026',0))}</td>
-              <td>{ratio_html(row.get('ratio'))}</td>
-              <td>{mono_html(row.get('tkm_atual'), prefix='R$', dec=0)}</td>
-              <td>{mono_html(row.get('tkm_comp'), prefix='R$', dec=0)}</td>
-              <td>{mono_html(row.get('price_cc'), prefix='R$', dec=0)}</td>
-              <td>{mono_html(row.get('preco_praticado'), prefix='R$', dec=2)}</td>
-              <td>{mono_html(row.get('mult_final'), suffix='x', dec=3)}</td>
-              <td>{mono_html(row.get('mult_flutuacao'), suffix='x', dec=3)}</td>
-            </tr>"""
-
-        st.markdown(f"""
-        <div class="tbl-wrap"><table class="tbl">
-          <thead><tr>
-            <th>Rota</th><th>Data</th><th>Turno</th><th>Antec.</th>
-            <th class="sort-active">Ocupação</th>
-            <th>PAX</th><th>Vagas rest.</th>
-            <th class="sort-active">LF Atual</th>
-            <th>LF Referência</th>
-            <th class="sort-active">Ratio</th>
-            <th>TKM Atual</th>
-            <th>TKM Comp</th>
-            <th>Price CC</th>
-            <th>Preço prat.</th>
-            <th>Mult.</th>
-            <th>Mult Flut.</th>
-          </tr></thead>
-          <tbody>{rows_c}</tbody>
-        </table></div>
+        # ── DATA EDITOR com coluna de preço desejado ──────────────────────────
+        st.markdown("""
+        <div style="margin:1rem 0 .5rem">
+          <div class="section-title" style="font-size:.95rem">Editor de Pricing</div>
+          <div class="section-sub">Preencha <strong>Preço Novo</strong> nas linhas que deseja alterar — o mult é calculado automaticamente.
+          Linhas sem preço novo são ignoradas no acionamento.</div>
+        </div>
         """, unsafe_allow_html=True)
+
+        # prepara df para o editor — só colunas relevantes + coluna editável
+        editor_cols = {
+            "data":           "Data",
+            "turno":          "Turno",
+            "rota_principal": "Rota principal",
+            "sentido":        "Sentido",
+            "occ_atual":      "Occ",
+            "lf_atual":       "LF Atual",
+            "lf_pascoa_2026": "LF Ref",
+            "ratio":          "Ratio",
+            "preco_praticado":"Preço praticado",
+        }
+        df_editor = df_cv[[c for c in editor_cols if c in df_cv.columns]].copy()
+        df_editor = df_editor.rename(columns=editor_cols)
+        df_editor["Preço novo"] = None   # coluna editável — começa vazia
+
+        # formata colunas de leitura
+        if "Occ" in df_editor.columns:
+            df_editor["Occ"] = (df_editor["Occ"] * 100).round(1).astype(str) + "%"
+        if "LF Atual" in df_editor.columns:
+            df_editor["LF Atual"] = (df_editor["LF Atual"] * 100).round(1).astype(str) + "%"
+        if "LF Ref" in df_editor.columns:
+            df_editor["LF Ref"] = (df_editor["LF Ref"] * 100).round(1).astype(str) + "%"
+        if "Ratio" in df_editor.columns:
+            df_editor["Ratio"] = df_editor["Ratio"].round(3).astype(str) + "x"
+        if "Data" in df_editor.columns:
+            df_editor["Data"] = pd.to_datetime(df_editor["Data"]).dt.strftime("%d/%m/%Y")
+
+        edited = st.data_editor(
+            df_editor,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Preço novo": st.column_config.NumberColumn(
+                    "✏️ Preço novo",
+                    help="Digite o preço desejado — o mult será calculado automaticamente",
+                    min_value=0.0,
+                    format="R$ %.2f",
+                ),
+                "Data":            st.column_config.TextColumn("Data",            disabled=True),
+                "Turno":           st.column_config.TextColumn("Turno",           disabled=True),
+                "Rota principal":  st.column_config.TextColumn("Rota principal",  disabled=True),
+                "Sentido":         st.column_config.TextColumn("Sentido",         disabled=True),
+                "Occ":             st.column_config.TextColumn("Occ",             disabled=True),
+                "LF Atual":        st.column_config.TextColumn("LF Atual",        disabled=True),
+                "LF Ref":          st.column_config.TextColumn("LF Ref",          disabled=True),
+                "Ratio":           st.column_config.TextColumn("Ratio",           disabled=True),
+                "Preço praticado": st.column_config.TextColumn("Preço praticado", disabled=True),
+            },
+            num_rows="fixed",
+            key="pricing_editor",
+        )
+
+        # ── preview do acionamento ────────────────────────────────────────────
+        df_editado = edited[edited["Preço novo"].notna()].copy()
+
+        if not df_editado.empty:
+            # recupera preco_praticado original pelo índice
+            df_editado["_preco_prat"] = df_cv.loc[df_editado.index, "preco_praticado"].values
+            df_editado["mult"] = (
+                df_editado["Preço novo"] / df_editado["_preco_prat"]
+            ).round(6)
+
+            df_acionamento = df_editado[[
+                "Data", "Turno", "Rota principal", "Sentido", "Preço praticado",
+                "Preço novo", "mult"
+            ]].copy()
+            df_acionamento = df_acionamento.rename(columns={
+                "Data":           "data",
+                "Turno":          "turno",
+                "Rota principal": "rota_principal",
+                "Sentido":        "sentido",
+                "Preço praticado":"preco_praticado",
+                "Preço novo":     "preco_novo",
+            })
+            # converte data de volta pra formato ISO
+            df_acionamento["data"] = pd.to_datetime(df_acionamento["data"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d")
+
+            st.markdown(f"""
+            <div style="margin:1.2rem 0 .5rem;padding:12px 16px;background:#f0fdf4;
+                        border:1px solid #bbf7d0;border-radius:6px;display:flex;
+                        align-items:center;gap:10px">
+              <span style="font-size:1.1rem">✅</span>
+              <span style="font-size:.82rem;color:#2d6a4f;font-weight:600">
+                {len(df_acionamento)} linha{"s" if len(df_acionamento)>1 else ""} com preço editado · pronto para enviar
+              </span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.dataframe(df_acionamento, use_container_width=True, hide_index=True)
+
+            # ── botões de envio ───────────────────────────────────────────────
+            col_b1, col_b2, _ = st.columns([1, 1, 4])
+
+            with col_b1:
+                csv_bytes = df_acionamento.to_csv(index=False).encode("utf-8")
+                st.download_button(
+                    label="⬇ Baixar CSV",
+                    data=csv_bytes,
+                    file_name=f"pricing_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
+
+            with col_b2:
+                if st.button("🚀 Enviar pro GitHub", use_container_width=True, type="primary", key="push_pricing"):
+                    import base64 as b64, json as js
+                    token  = url_acel.split("raw.githubusercontent.com")[0] if "raw.githubusercontent.com" in url_acel else ""
+                    # usa sidebar para token — lê do campo de URL ou pede
+                    gh_token = st.session_state.get("gh_token_pricing", "")
+                    if not gh_token:
+                        st.warning("Cole seu GitHub token no campo abaixo para enviar.")
+                    else:
+                        repo   = "meninosia2026-beep/aceleracao_vendas"
+                        branch = "main"
+                        path   = f"data/pricing_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+                        url_gh = f"https://api.github.com/repos/{repo}/contents/{path}"
+                        hdrs   = {"Authorization": f"token {gh_token}", "Accept": "application/vnd.github.v3+json"}
+                        enc    = b64.b64encode(csv_bytes).decode("utf-8")
+                        r_gh   = requests.put(url_gh, headers=hdrs,
+                                              data=js.dumps({"message": f"pricing: {path}", "content": enc, "branch": branch}))
+                        if r_gh.status_code in (200, 201):
+                            st.success(f"✅ Enviado para {path}")
+                        else:
+                            st.error(f"Erro {r_gh.status_code}: {r_gh.json().get('message')}")
+
+            # campo para token do GitHub (só aparece quando há linhas editadas)
+            with st.expander("🔑 GitHub Token para envio"):
+                st.text_input("Token", type="password", key="gh_token_pricing",
+                              help="Necessário só para o botão 'Enviar pro GitHub'. Fica só na sessão.")
+
+        else:
+            st.markdown("""
+            <div style="margin-top:1rem;padding:12px 16px;background:var(--bg2);
+                        border:1px solid var(--bdr);border-radius:6px">
+              <span style="font-size:.82rem;color:var(--muted)">
+                Preencha a coluna <strong>✏️ Preço novo</strong> nas linhas que deseja alterar para gerar o acionamento.
+              </span>
+            </div>
+            """, unsafe_allow_html=True)
 
         st.markdown(f"""
         <div class="footer">
           <span class="ftxt"><strong style="color:var(--txt)">{len(df_cv)}</strong> linhas · {len(df_curva_raw)} total</span>
-          <span class="ftxt">Ratio = LF atual / LF referência · acima de 1.0 = melhor que a referência</span>
+          <span class="ftxt">mult = preço novo / preço praticado · só linhas editadas entram no acionamento</span>
         </div>""", unsafe_allow_html=True)
