@@ -739,18 +739,30 @@ with tab2:
         df_editado = edited[edited["✏️ Preço novo"].notna()].copy()
 
         if not df_editado.empty:
-            # recupera preco_praticado original pelo índice
-            df_editado["_preco_prat"] = df_cv.loc[df_editado.index, "preco_praticado"].values
-            df_editado["mult_novo"]   = (df_editado["✏️ Preço novo"] / df_editado["_preco_prat"]).round(6)
+            # base do cálculo: preco_com_flutuacao (cadeia incremental)
+            # fallback para preco_praticado se preco_com_flutuacao for nulo
+            # lógica: mult_novo = preco_novo / preco_com_flutuacao
+            # → aumento: 400 / 322.45 = 1.2404x  (> 1)
+            # → redução: 250 / 322.45 = 0.7754x  (< 1)
+            # o Databricks aplica esse mult SOBRE o preco_com_flutuacao atual
+            df_editado["_preco_prat"]      = df_cv.loc[df_editado.index, "preco_praticado"].values
+            df_editado["_preco_com_flut"]  = df_cv.loc[df_editado.index, "preco_com_flutuacao"].values \
+                                             if "preco_com_flutuacao" in df_cv.columns else None
+            # usa preco_com_flutuacao como base; fallback para preco_praticado
+            base_vals = pd.Series(df_editado["_preco_com_flut"]).fillna(
+                        pd.Series(df_editado["_preco_prat"])).values
+            df_editado["_base_calc"] = base_vals
+            df_editado["mult_novo"]  = (df_editado["✏️ Preço novo"] / df_editado["_base_calc"]).round(6)
 
             df_acionamento = pd.DataFrame({
-                "data":            pd.to_datetime(df_editado["data_fmt"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d"),
-                "turno":           df_editado["turno"].values,
-                "rota_principal":  df_editado["rota_principal"].values,
-                "sentido":         df_editado["sentido"].values,
-                "preco_praticado": df_editado["_preco_prat"].values,
-                "preco_novo":      df_editado["✏️ Preço novo"].values,
-                "mult":            df_editado["mult_novo"].values,
+                "data":                 pd.to_datetime(df_editado["data_fmt"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d"),
+                "turno":                df_editado["turno"].values,
+                "rota_principal":       df_editado["rota_principal"].values,
+                "sentido":              df_editado["sentido"].values,
+                "preco_praticado":      df_editado["_preco_prat"].values,
+                "preco_com_flutuacao":  df_editado["_base_calc"].values,
+                "preco_novo":           df_editado["✏️ Preço novo"].values,
+                "mult":                 df_editado["mult_novo"].values,
             })
 
             n_edit = len(df_acionamento)
@@ -823,5 +835,5 @@ with tab2:
         st.markdown(f"""
         <div class="footer">
           <span class="ftxt"><strong style="color:var(--txt)">{len(df_cv)}</strong> linhas · {len(df_curva_raw)} total</span>
-          <span class="ftxt">mult = preço novo / preço praticado · só linhas editadas entram no acionamento</span>
+          <span class="ftxt">mult = preço novo / preço c/ flut. · &gt; 1 aumento · &lt; 1 redução · só linhas editadas entram no acionamento</span>
         </div>""", unsafe_allow_html=True)
