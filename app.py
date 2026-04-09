@@ -647,6 +647,36 @@ with tab2:
         if rota_c:      df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
         df_cv = df_cv.sort_values(["occ_atual","ratio"], ascending=[False, False]).reset_index(drop=True)
 
+        # ── FILTRO DE JÁ ENVIADOS ─────────────────────────────────────────────
+        # chave única por linha: data + turno + sentido
+        if "linhas_enviadas" not in st.session_state:
+            st.session_state.linhas_enviadas = set()
+
+        def chave_linha(row):
+            data_str = pd.to_datetime(row["data"]).strftime("%Y-%m-%d") if pd.notna(row["data"]) else ""
+            return f"{data_str}|{row.get('turno','')}|{row.get('sentido','')}"
+
+        # aplica o filtro — oculta do editor o que já foi enviado
+        mask_enviadas = df_cv.apply(chave_linha, axis=1).isin(st.session_state.linhas_enviadas)
+        n_ocultas     = int(mask_enviadas.sum())
+        df_cv_editor  = df_cv[~mask_enviadas].reset_index(drop=True)
+
+        # aviso se há linhas ocultas
+        if n_ocultas > 0:
+            col_oc1, col_oc2 = st.columns([5, 1])
+            with col_oc1:
+                st.markdown(f"""
+                <div style="padding:8px 14px;background:#fff7ed;border:1px solid #fed7aa;
+                            border-radius:6px;margin-bottom:.8rem;font-size:.8rem;color:#92400e">
+                  <strong>{n_ocultas}</strong> linha{"s" if n_ocultas>1 else ""} já enviada{"s" if n_ocultas>1 else ""} oculta{"s" if n_ocultas>1 else ""} da tabela.
+                  Clique em "Mostrar todas" para reexibi-las.
+                </div>
+                """, unsafe_allow_html=True)
+            with col_oc2:
+                if st.button("👁 Mostrar todas", key="mostrar_enviadas"):
+                    st.session_state.linhas_enviadas = set()
+                    st.rerun()
+
         # ── EDITOR DE PRICING ────────────────────────────────────────────────
         st.markdown("""
         <div style="margin:1.2rem 0 .4rem">
@@ -673,8 +703,8 @@ with tab2:
             "mult_final", "mult_flutuacao",
             "antecedencia",
         ]
-        cols_presentes = [c for c in cols_editor if c in df_cv.columns]
-        df_editor = df_cv[cols_presentes].copy()
+        cols_presentes = [c for c in cols_editor if c in df_cv_editor.columns]
+        df_editor = df_cv_editor[cols_presentes].copy()
 
         # formata colunas de exibição
         df_editor["data_fmt"] = pd.to_datetime(df_editor["data"]).dt.strftime("%d/%m/%Y")
@@ -688,7 +718,8 @@ with tab2:
 
         # colunas que aparecem no editor (ordem visual)
         show_cols = (
-            ["data_fmt","turno","rota_principal","sentido","antecedencia",
+            ["incluir",
+             "data_fmt","turno","rota_principal","sentido","antecedencia",
              "occ_pct","pax","vagas_restantes",
              "lf_a_fmt","lf_r_fmt","ratio_fmt",
              "tkm_atual","tkm_comp","price_cc",
@@ -696,10 +727,19 @@ with tab2:
              "mult_final","mult_flutuacao",
              "✏️ Preço novo"]
         )
+
+        # coluna incluir — por padrão todas marcadas
+        df_editor["incluir"] = True
+
         show_cols = [c for c in show_cols if c in df_editor.columns]
         df_show   = df_editor[show_cols].copy()
 
         col_config = {
+            "incluir":             st.column_config.CheckboxColumn(
+                                       "✅ Incluir",
+                                       help="Desmarque para excluir esta linha do acionamento",
+                                       default=True,
+                                   ),
             "data_fmt":            st.column_config.TextColumn("Data",            disabled=True),
             "turno":               st.column_config.TextColumn("Turno",           disabled=True),
             "rota_principal":      st.column_config.TextColumn("Rota principal",  disabled=True),
@@ -736,7 +776,13 @@ with tab2:
         )
 
         # ── PREVIEW DO ACIONAMENTO ────────────────────────────────────────────
-        df_editado = edited[edited["✏️ Preço novo"].notna()].copy()
+        # filtra: tem preco novo E está marcado como incluir
+        df_editado = edited[
+            edited["✏️ Preço novo"].notna() & edited["incluir"].fillna(True)
+        ].copy()
+
+        # conta excluídas para feedback
+        n_excluidas = int((~edited["incluir"].fillna(True)).sum())
 
         if not df_editado.empty:
             # base do cálculo: preco_com_flutuacao (cadeia incremental)
@@ -745,9 +791,9 @@ with tab2:
             # → aumento: 400 / 322.45 = 1.2404x  (> 1)
             # → redução: 250 / 322.45 = 0.7754x  (< 1)
             # o Databricks aplica esse mult SOBRE o preco_com_flutuacao atual
-            df_editado["_preco_prat"]      = df_cv.loc[df_editado.index, "preco_praticado"].values
-            df_editado["_preco_com_flut"]  = df_cv.loc[df_editado.index, "preco_com_flutuacao"].values \
-                                             if "preco_com_flutuacao" in df_cv.columns else None
+            df_editado["_preco_prat"]      = df_cv_editor.loc[df_editado.index, "preco_praticado"].values
+            df_editado["_preco_com_flut"]  = df_cv_editor.loc[df_editado.index, "preco_com_flutuacao"].values \
+                                             if "preco_com_flutuacao" in df_cv_editor.columns else None
             # usa preco_com_flutuacao como base; fallback para preco_praticado
             base_vals = pd.Series(df_editado["_preco_com_flut"]).fillna(
                         pd.Series(df_editado["_preco_prat"])).values
@@ -766,9 +812,10 @@ with tab2:
             })
 
             n_edit = len(df_acionamento)
+            excl_txt = f" · {n_excluidas} ignorada{'s' if n_excluidas>1 else ''}" if n_excluidas > 0 else ""
             st.markdown(f"""
             <div class="acion-banner">
-              <span class="acion-txt">✅ {n_edit} linha{"s" if n_edit>1 else ""} com preço editado · pronto para enviar</span>
+              <span class="acion-txt">✅ {n_edit} linha{"s" if n_edit>1 else ""} no acionamento{excl_txt}</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -779,13 +826,20 @@ with tab2:
 
             with col_b1:
                 csv_bytes = df_acionamento.to_csv(index=False).encode("utf-8")
-                st.download_button(
+                if st.download_button(
                     label="⬇ Baixar CSV",
                     data=csv_bytes,
                     file_name=f"pricing_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                     mime="text/csv",
                     use_container_width=True,
-                )
+                ):
+                    # marca linhas como enviadas após download
+                    for _, r in df_acionamento.iterrows():
+                        st.session_state.linhas_enviadas.add(
+                            f"{r['data']}|{r['turno']}|{r['sentido']}"
+                        )
+                    st.session_state.editor_version += 1
+                    st.rerun()
 
             with col_b2:
                 if st.button("🚀 Enviar pro GitHub", use_container_width=True,
@@ -804,13 +858,21 @@ with tab2:
                                               data=json.dumps({"message": f"pricing: {path}",
                                                                "content": enc, "branch": branch}))
                         if r_gh.status_code in (200, 201):
+                            # marca linhas como enviadas após push
+                            for _, r in df_acionamento.iterrows():
+                                st.session_state.linhas_enviadas.add(
+                                    f"{r['data']}|{r['turno']}|{r['sentido']}"
+                                )
+                            st.session_state.editor_version += 1
                             st.success(f"✅ Enviado: {path}")
+                            st.rerun()
                         else:
                             st.error(f"Erro {r_gh.status_code}: {r_gh.json().get('message')}")
 
             with col_b3:
                 if st.button("🔄 Reset edições", use_container_width=True, key="reset_pricing"):
                     st.session_state.editor_version += 1
+                    st.session_state.linhas_enviadas = set()
                     st.rerun()
 
             with st.expander("🔑 GitHub Token para envio"):
@@ -830,10 +892,11 @@ with tab2:
 
             if st.button("🔄 Reset edições", key="reset_pricing_empty"):
                 st.session_state.editor_version += 1
+                st.session_state.linhas_enviadas = set()
                 st.rerun()
 
         st.markdown(f"""
         <div class="footer">
-          <span class="ftxt"><strong style="color:var(--txt)">{len(df_cv)}</strong> linhas · {len(df_curva_raw)} total</span>
-          <span class="ftxt">mult = preço novo / preço c/ flut. · &gt; 1 aumento · &lt; 1 redução · só linhas editadas entram no acionamento</span>
+          <span class="ftxt"><strong style="color:var(--txt)">{len(df_cv_editor)}</strong> linhas no editor · {len(df_cv)} total · {n_ocultas} já enviadas ocultas</span>
+          <span class="ftxt">mult = preço novo / preço c/ flut. · &gt; 1 aumento · &lt; 1 redução</span>
         </div>""", unsafe_allow_html=True)
