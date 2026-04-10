@@ -6,7 +6,6 @@ import base64
 import json
 from datetime import datetime
 
-GITHUB_RAW_ACEL    = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/alerta_aceleracao.csv"
 GITHUB_RAW_CURVA   = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado.csv"
 GITHUB_RAW_CURVA2  = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado2.csv"
 
@@ -187,8 +186,8 @@ def prep_curva(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty: return df
     df = df.copy()
     float_cols = ["occ_atual","lf_pascoa_2026","lf_atual","ratio","tkm_comp",
-                  "preco_base","preco_est_draft","preco_praticado","mult_final","price_cc",
-                  "tkm_atual","mult_flutuacao","preco_com_flutuacao"]
+                  "preco_base","preco_est_draft","preco_com_sazonalidade","mult_final","price_cc",
+                  "tkm_atual","mult_flutuacao","preco_com_flutuacao","preco_staff"]
     for c in float_cols:
         if c in df.columns: df[c] = pd.to_numeric(df[c].replace("null", None), errors="coerce")
     for c in ["pax","capacidade_atual","vagas_restantes","antecedencia"]:
@@ -301,250 +300,23 @@ def turno_badge(t):
 
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown('<div style="padding:14px 0 6px"><div class="sb-label">Aceleração PAX · URL</div></div>',
+    st.markdown('<div style="padding:14px 0 6px"><div class="sb-label">Tiradentes · URL</div></div>',
                 unsafe_allow_html=True)
-    url_acel = st.text_input("", value=GITHUB_RAW_ACEL, label_visibility="collapsed", key="url_acel")
-    st.markdown('<div class="sb-label" style="margin-top:8px">Curva de Feriado · URL</div>', unsafe_allow_html=True)
     url_curva = st.text_input("", value=GITHUB_RAW_CURVA, label_visibility="collapsed", key="url_curva")
 
-    st.markdown('<div class="sb-label" style="margin-top:8px">Curva de Feriado 2 · URL</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-label" style="margin-top:8px">Feriado Maio · URL</div>', unsafe_allow_html=True)
     url_curva2 = st.text_input("", value=GITHUB_RAW_CURVA2, label_visibility="collapsed", key="url_curva2")
 
     if st.button("↻  Recarregar dados", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
-    df_acel_raw   = prep_acel(load_data(url_acel))
     df_curva_raw  = prep_curva(load_data(url_curva))
     df_curva2_raw = prep_curva(load_data(url_curva2))
 
-    st.markdown('<div style="margin-top:18px;padding-top:18px;border-top:1px solid #e2e1dc">'
-                '<div style="font-size:.7rem;font-weight:700;color:#8c8c84;letter-spacing:1.5px;'
-                'text-transform:uppercase;margin-bottom:12px">Filtros · Aceleração</div></div>',
-                unsafe_allow_html=True)
-    datas_disp = sorted(df_acel_raw["data"].dt.date.unique()) if not df_acel_raw.empty else []
-    st.markdown('<div class="sb-label">Data de viagem</div>', unsafe_allow_html=True)
-    datas_sel  = st.multiselect("", options=datas_disp, default=datas_disp,
-                                format_func=lambda d: d.strftime("%d/%m/%Y"),
-                                label_visibility="collapsed", key="datas_acel")
-    st.markdown('<div style="height:6px"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="sb-label">Antecedência (dias)</div>', unsafe_allow_html=True)
-    if not df_acel_raw.empty:
-        ant_min = int(df_acel_raw["antecedencia"].min())
-        ant_max = int(df_acel_raw["antecedencia"].max())
-    else:
-        ant_min, ant_max = 0, 30
-    ant_range = st.slider("", ant_min, ant_max, (ant_min, ant_max), label_visibility="collapsed")
-    st.markdown('<div style="height:4px"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="sb-label">Buscar rota</div>', unsafe_allow_html=True)
-    rota_busca  = st.text_input("", placeholder="ex: SAO-RIO", label_visibility="collapsed", key="rota_acel")
-    hide_normal = st.checkbox("Ocultar rotas Normais", value=True)
-
-    st.markdown(
-        '<div style="margin-top:18px;padding-top:16px;border-top:1px solid #e2e1dc">'
-        '<div style="font-size:.7rem;font-weight:700;color:#8c8c84;letter-spacing:1.5px;'
-        'text-transform:uppercase;margin-bottom:10px">Legenda</div>'
-        '<div style="font-size:.7rem;color:#8c8c84">'
-        '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eeede9">'
-        '<span>D1</span><span style="color:#3d3d38;font-weight:500">ontem completo</span></div>'
-        '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eeede9">'
-        '<span>D5</span><span style="color:#3d3d38;font-weight:500">5 dias atrás</span></div>'
-        '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eeede9">'
-        '<span>Acel</span><span style="color:#3d3d38;font-weight:500">D1 vs média D2–D5</span></div>'
-        '<div style="display:flex;justify-content:space-between;padding:4px 0">'
-        '<span>Score</span><span style="color:#3d3d38;font-weight:500">45% occ · 35% fc · 20% acel</span></div>'
-        '</div></div>',
-        unsafe_allow_html=True,
-    )
-
-# ── FILTRAR ACELERAÇÃO ────────────────────────────────────────────────────────
-df_base = df_acel_raw.copy() if not df_acel_raw.empty else pd.DataFrame()
-if not df_base.empty:
-    if datas_sel:
-        df_base = df_base[df_base["data"].dt.date.isin(datas_sel)]
-    df_base = df_base[df_base["antecedencia"].between(ant_range[0], ant_range[1])]
-    if rota_busca:
-        df_base = df_base[df_base["sentido"].str.upper().str.contains(rota_busca.upper(), na=False)]
-    if hide_normal:
-        df_base = df_base[df_base["sinal"] != "⚪ NORMAL"]
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["🚦  Aceleração PAX", "📈  Curva de Feriado", "📈  Curva de Feriado 2"])
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 1 — ACELERAÇÃO PAX
-# ══════════════════════════════════════════════════════════════════════════════
-with tab1:
-    agora = datetime.now().strftime("%d/%m/%Y %H:%M")
-    st.markdown(f"""
-    <div class="pg-header">
-      <div>
-        <div class="pg-title">Farol de Aceleração PAX</div>
-        <div class="pg-sub">Monitoramento de velocidade de reservas por rota · {len(df_base)} rotas visíveis</div>
-      </div>
-      <div class="upill"><span class="dot"></span>Atualizado em {agora} · via Databricks</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if df_acel_raw.empty:
-        st.info("Nenhum dado de aceleração. Verifique a URL na sidebar.")
-    else:
-        def cnt_kw(kw): return int(df_acel_raw["sinal"].str.contains(kw, na=False).sum())
-        kpis = [
-            ("URGENTE",      cnt_kw("URGENTE"),      "#c0392b", "c-red"),
-            ("ATENÇÃO",      cnt_kw("PROXIMA"),       "#d35400", "c-ora"),
-            ("LOTANDO",      cnt_kw("LOTANDO"),       "#e74c3c", "c-red2"),
-            ("OPORTUNIDADE", cnt_kw("OPORTUNIDADE"), "#2d6a4f", "c-grn"),
-            ("MONITORAR",    cnt_kw("MONITORAR"),     "#b7950b", "c-yel"),
-            ("DESACEL.",     cnt_kw("DESACEL"),       "#2c3e7a", "c-blu"),
-            ("TOTAL ROTAS",  len(df_acel_raw),        "#b8b8b0", "c-mut"),
-        ]
-        strip = '<div class="kpi-strip" style="grid-template-columns:repeat(7,1fr)">'
-        for lbl, val, dot, cls in kpis:
-            zc = " zero" if val == 0 else ""
-            strip += (f'<div class="kpi {cls}"><div class="kpi-lbl">'
-                      f'<span class="kpi-dot" style="background:{dot}"></span>{lbl}</div>'
-                      f'<div class="kpi-val{zc}">{val}</div></div>')
-        strip += '</div>'
-        st.markdown(strip, unsafe_allow_html=True)
-
-        if "aceleracao_pct" in df_base.columns and not df_base.empty:
-            df_ch = df_base.dropna(subset=["aceleracao_pct"]).copy()
-            if "media_d2_d5" in df_ch.columns:
-                df_ch = df_ch[df_ch["media_d2_d5"] >= 5]
-            top_up   = df_ch.nlargest(8,  "aceleracao_pct")
-            top_down = df_ch.nsmallest(8, "aceleracao_pct")
-            max_abs  = max(
-                top_up["aceleracao_pct"].abs().max()   if not top_up.empty   else 1,
-                top_down["aceleracao_pct"].abs().max() if not top_down.empty else 1,
-            )
-            def hbar(row, color):
-                pct_w = min(abs(float(row["aceleracao_pct"])) / max_abs * 100, 100)
-                v     = float(row["aceleracao_pct"])
-                sign  = "+" if v > 0 else ""
-                dt    = pd.to_datetime(row["data"]).strftime("%d/%m") if pd.notna(row["data"]) else ""
-                return (f'<div class="hbar-row">'
-                        f'<div style="width:80px;text-align:right;flex-shrink:0">'
-                        f'<span class="hbar-lbl">{row["sentido"]}</span>'
-                        f'<span class="hbar-date">{dt}</span></div>'
-                        f'<div class="hbar-track">'
-                        f'<div class="hbar-fill" style="width:{pct_w:.1f}%;background:{color}">'
-                        f'<span class="hbar-val">{sign}{v:.0f}%</span></div></div></div>')
-            st.markdown(f"""
-            <div class="chart-section">
-              <div class="section-title">Maiores variações de aceleração</div>
-              <div class="section-sub">D1 vs média D2–D5 · mínimo 5 reservas/dia · aceleração limitada a 200%</div>
-              <div class="chart-grid">
-                <div class="chart-col">
-                  <div class="chart-col-title"><span style="background:#2d6a4f"></span>Acelerando</div>
-                  {''.join(hbar(r, "#2d6a4f") for _, r in top_up.iterrows())}
-                </div>
-                <div class="chart-col">
-                  <div class="chart-col-title"><span style="background:#c0392b"></span>Desacelerando</div>
-                  {''.join(hbar(r, "#c0392b") for _, r in top_down.iterrows())}
-                </div>
-              </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        sinais_pres = sorted(df_base["sinal"].dropna().unique(), key=lambda s: SINAL_ORDER.get(s, 99))
-        if "chips" not in st.session_state:
-            st.session_state.chips = set(sinais_pres)
-        st.session_state.chips = st.session_state.chips.intersection(sinais_pres)
-        if not st.session_state.chips:
-            st.session_state.chips = set(sinais_pres)
-
-        st.markdown('<div style="border-top:1px solid #e2e1dc;padding-top:12px;margin-bottom:6px"></div>',
-                    unsafe_allow_html=True)
-        chip_cols = st.columns(len(sinais_pres))
-        for i, sinal in enumerate(sinais_pres):
-            m     = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
-            ativo = sinal in st.session_state.chips
-            cnt_s = int((df_base["sinal"] == sinal).sum())
-            with chip_cols[i]:
-                label = f'● {m["short"]} {cnt_s}' if ativo else f'○ {m["short"]} {cnt_s}'
-                if st.button(label, key=f"chip_{i}", use_container_width=True,
-                             type="primary" if ativo else "secondary"):
-                    if ativo and len(st.session_state.chips) > 1:
-                        st.session_state.chips.discard(sinal)
-                    else:
-                        st.session_state.chips.add(sinal)
-                    st.rerun()
-
-        df_view = df_base[df_base["sinal"].isin(st.session_state.chips)].copy()
-        df_view = calcular_score(df_view)
-        df_view["_sinal_ord"] = df_view["sinal"].map(lambda x: SINAL_ORDER.get(x, 99))
-        df_view = df_view.sort_values(["_sinal_ord", "_score"], ascending=[True, False])
-
-        if df_view.empty:
-            st.info("Nenhuma rota com os filtros selecionados.")
-        else:
-            st.markdown("""
-            <div class="sort-info">Ordenado por &nbsp;
-              <span class="sort-tag">▼ Ocupação</span>
-              <span class="sort-tag">▼ Forecast %</span>
-              <span class="sort-tag">▼ Aceleração</span>
-              &nbsp; dentro de cada grupo · score ponderado 45 / 35 / 20
-            </div>""", unsafe_allow_html=True)
-
-            has_d5 = "pax_d5" in df_view.columns
-            rows   = ""
-            cur    = None
-            rank   = {}
-            for _, row in df_view.iterrows():
-                sinal = row["sinal"]
-                if sinal != cur:
-                    cur = sinal; rank[cur] = 0
-                    m   = SINAL_META.get(cur, SINAL_META["⚪ NORMAL"])
-                    cnt_g = int((df_view["sinal"] == cur).sum())
-                    rows += (f'<tr class="grp-sep"><td colspan="14">'
-                             f'<span style="display:inline-flex;align-items:center;gap:6px">'
-                             f'<span style="width:6px;height:6px;border-radius:50%;background:{m["dot"]};display:inline-block"></span>'
-                             f'{cur} &nbsp;·&nbsp; {cnt_g} rota{"s" if cnt_g>1 else ""}'
-                             f'</span></td></tr>')
-                rank[cur] += 1
-                top_cls = " top-row" if rank[cur] <= 3 else ""
-                dt  = row["data"].strftime("%d/%m") if pd.notna(row.get("data")) else "—"
-                d5  = row.get("pax_d5", 0) if has_d5 else 0
-                rows += f"""<tr class="{top_cls}">
-                  <td><span style="font-size:.58rem;color:var(--muted2);font-weight:600;margin-right:5px">#{rank[cur]}</span>
-                      <span class="rname">{row.get('sentido','—')}</span><br>
-                      <span class="rsub">{row.get('rota_principal','')}</span></td>
-                  <td><span class="nt">{dt}</span></td>
-                  <td>{mono_html(row.get('antecedencia'), suffix='d')}</td>
-                  <td>{occ_html(row.get('occ_atual',0))}</td>
-                  <td>{mono_html(row.get('pax'))}</td>
-                  <td>{mono_html(row.get('assentos_disponiveis'))}</td>
-                  <td>{fc_html(row.get('pct_atingimento_forecast'), row.get('pax_faltam_forecast'))}</td>
-                  <td>{spark_html(d5, row.get('pax_d4',0), row.get('pax_d3',0), row.get('pax_d2',0), row.get('pax_d1',0))}</td>
-                  <td>{acel_html(row.get('aceleracao_pct'))}</td>
-                  <td>{tend_html(row.get('tendencia_linear'))}</td>
-                  <td>{mono_html(row.get('tkm_comp'), prefix='R$', dec=0)}</td>
-                  <td>{mono_html(row.get('predict_consenso'))}</td>
-                  <td>{score_bar(row.get('_score',0))}</td>
-                  <td>{sinal_tag(str(row.get('sinal','⚪ NORMAL')))}</td>
-                </tr>"""
-
-            st.markdown(f"""
-            <div class="tbl-wrap"><table class="tbl">
-              <thead><tr>
-                <th>Rota</th><th>Data</th><th>Antec.</th>
-                <th class="sort-active">Ocupação</th>
-                <th>PAX</th><th>Assentos liv.</th>
-                <th class="sort-active">Forecast %</th>
-                <th>D5→D1</th><th class="sort-active">Acel. %</th>
-                <th>Tendência</th><th>Ticket</th><th>Predict</th>
-                <th class="sort-active">Score</th><th>Sinal</th>
-              </tr></thead>
-              <tbody>{rows}</tbody>
-            </table></div>
-            """, unsafe_allow_html=True)
-
-            st.markdown(f"""
-            <div class="footer">
-              <span class="ftxt"><strong style="color:var(--txt)">{len(df_view)}</strong> rotas · {len(df_acel_raw)} total</span>
-              <span class="ftxt">D1 = ontem completo · Acel = D1 vs média D2–D5 · sem viés de horário</span>
-            </div>""", unsafe_allow_html=True)
+tab1, tab2 = st.tabs(["🎉  Tiradentes", "🎉  Feriado Maio"])
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FUNÇÃO REUTILIZÁVEL — CURVA DE FERIADO + EDITOR DE PRICING
@@ -705,7 +477,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
 
     cols_editor    = ["data","turno","rota_principal","sentido","antecedencia",
                       "occ_atual","pax","vagas_restantes","lf_atual","lf_pascoa_2026","ratio",
-                      "tkm_atual","tkm_comp","price_cc","preco_praticado","preco_com_flutuacao",
+                      "tkm_atual","tkm_comp","price_cc","preco_com_sazonalidade","preco_staff","preco_com_flutuacao",
                       "mult_final","mult_flutuacao"]
     cols_presentes = [c for c in cols_editor if c in df_cv_editor.columns]
     df_editor      = df_cv_editor[cols_presentes].copy()
@@ -721,7 +493,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
 
     show_cols = ["incluir","data_fmt","turno","rota_principal","sentido","antecedencia",
                  "occ_pct","pax","vagas_restantes","lf_a_fmt","lf_r_fmt","ratio_fmt",
-                 "tkm_atual","tkm_comp","price_cc","preco_praticado","preco_com_flutuacao",
+                 "tkm_atual","tkm_comp","price_cc","preco_com_sazonalidade","preco_staff","preco_com_flutuacao",
                  "mult_final","mult_flutuacao","✏️ Preço novo"]
     show_cols  = [c for c in show_cols if c in df_editor.columns]
     df_show    = df_editor[show_cols].copy()
@@ -742,7 +514,8 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
         "tkm_atual":           st.column_config.NumberColumn("TKM Atual",      disabled=True, format="R$ %.0f"),
         "tkm_comp":            st.column_config.NumberColumn("TKM Comp",       disabled=True, format="R$ %.0f"),
         "price_cc":            st.column_config.NumberColumn("Price CC",       disabled=True, format="R$ %.0f"),
-        "preco_praticado":     st.column_config.NumberColumn("Preço prat.",    disabled=True, format="R$ %.2f"),
+        "preco_com_sazonalidade": st.column_config.NumberColumn("Preço c/ sazon.", disabled=True, format="R$ %.2f"),
+        "preco_staff":         st.column_config.NumberColumn("Preço Staff",    disabled=True, format="R$ %.2f"),
         "preco_com_flutuacao": st.column_config.NumberColumn("Preço c/ flut.", disabled=True, format="R$ %.2f"),
         "mult_final":          st.column_config.NumberColumn("Mult Final",     disabled=True, format="%.3fx"),
         "mult_flutuacao":      st.column_config.NumberColumn("Mult Flut.",     disabled=True, format="%.3fx"),
@@ -763,7 +536,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
     n_excluidas = int((~edited["incluir"].fillna(True)).sum())
 
     if not df_editado.empty:
-        df_editado["_preco_prat"]     = df_cv_editor.loc[df_editado.index, "preco_praticado"].values
+        df_editado["_preco_prat"]     = df_cv_editor.loc[df_editado.index, "preco_com_sazonalidade"].values
         df_editado["_preco_com_flut"] = df_cv_editor.loc[df_editado.index, "preco_com_flutuacao"].values \
                                         if "preco_com_flutuacao" in df_cv_editor.columns else None
         base_vals = pd.Series(df_editado["_preco_com_flut"]).fillna(
@@ -776,7 +549,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
             "turno":               df_editado["turno"].values,
             "rota_principal":      df_editado["rota_principal"].values,
             "sentido":             df_editado["sentido"].values,
-            "preco_praticado":     df_editado["_preco_prat"].values,
+            "preco_com_sazonalidade": df_editado["_preco_prat"].values,
             "preco_com_flutuacao": df_editado["_base_calc"].values,
             "preco_novo":          df_editado["✏️ Preço novo"].values,
             "mult":                df_editado["mult_novo"].values,
@@ -866,11 +639,11 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — CURVA DE FERIADO
 # ══════════════════════════════════════════════════════════════════════════════
-with tab2:
-    render_curva(df_curva_raw, tab_key="t2", titulo="Curva de Feriado")
+with tab1:
+    render_curva(df_curva_raw, tab_key="t1", titulo="Tiradentes")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — CURVA DE FERIADO 2
 # ══════════════════════════════════════════════════════════════════════════════
-with tab3:
-    render_curva(df_curva2_raw, tab_key="t3", titulo="Curva de Feriado 2")
+with tab2:
+    render_curva(df_curva2_raw, tab_key="t2", titulo="Feriado Maio")
