@@ -6,8 +6,9 @@ import base64
 import json
 from datetime import datetime
 
-GITHUB_RAW_ACEL  = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/alerta_aceleracao.csv"
-GITHUB_RAW_CURVA = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado.csv"
+GITHUB_RAW_ACEL    = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/alerta_aceleracao.csv"
+GITHUB_RAW_CURVA   = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado.csv"
+GITHUB_RAW_CURVA2  = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado2.csv"
 
 st.set_page_config(page_title="Farol PAX", page_icon="🚦", layout="wide", initial_sidebar_state="expanded")
 
@@ -306,12 +307,16 @@ with st.sidebar:
     st.markdown('<div class="sb-label" style="margin-top:8px">Curva de Feriado · URL</div>', unsafe_allow_html=True)
     url_curva = st.text_input("", value=GITHUB_RAW_CURVA, label_visibility="collapsed", key="url_curva")
 
+    st.markdown('<div class="sb-label" style="margin-top:8px">Curva de Feriado 2 · URL</div>', unsafe_allow_html=True)
+    url_curva2 = st.text_input("", value=GITHUB_RAW_CURVA2, label_visibility="collapsed", key="url_curva2")
+
     if st.button("↻  Recarregar dados", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
-    df_acel_raw  = prep_acel(load_data(url_acel))
-    df_curva_raw = prep_curva(load_data(url_curva))
+    df_acel_raw   = prep_acel(load_data(url_acel))
+    df_curva_raw  = prep_curva(load_data(url_curva))
+    df_curva2_raw = prep_curva(load_data(url_curva2))
 
     st.markdown('<div style="margin-top:18px;padding-top:18px;border-top:1px solid #e2e1dc">'
                 '<div style="font-size:.7rem;font-weight:700;color:#8c8c84;letter-spacing:1.5px;'
@@ -364,7 +369,7 @@ if not df_base.empty:
         df_base = df_base[df_base["sinal"] != "⚪ NORMAL"]
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab1, tab2 = st.tabs(["🚦  Aceleração PAX", "📈  Curva de Feriado"])
+tab1, tab2, tab3 = st.tabs(["🚦  Aceleração PAX", "📈  Curva de Feriado", "📈  Curva de Feriado 2"])
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — ACELERAÇÃO PAX
@@ -542,361 +547,330 @@ with tab1:
             </div>""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — CURVA DE FERIADO + EDITOR DE PRICING
+# FUNÇÃO REUTILIZÁVEL — CURVA DE FERIADO + EDITOR DE PRICING
+# Parâmetros:
+#   df_raw      — DataFrame já preparado com prep_curva()
+#   tab_key     — prefixo único para todas as chaves de session_state (ex: "t2","t3")
+#   titulo      — título exibido no header
 # ══════════════════════════════════════════════════════════════════════════════
-with tab2:
-    agora2 = datetime.now().strftime("%d/%m/%Y %H:%M")
+def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
+    agora_t = datetime.now().strftime("%d/%m/%Y %H:%M")
     st.markdown(f"""
     <div class="pg-header">
       <div>
-        <div class="pg-title">Curva de Feriado</div>
+        <div class="pg-title">{titulo}</div>
         <div class="pg-sub">Comparativo de load factor · edite o preço desejado diretamente na tabela</div>
       </div>
-      <div class="upill"><span class="dot"></span>Atualizado em {agora2} · via Databricks</div>
+      <div class="upill"><span class="dot"></span>Atualizado em {agora_t} · via Databricks</div>
     </div>
     """, unsafe_allow_html=True)
 
-    if df_curva_raw.empty:
+    if df_raw.empty:
         st.info("Nenhum dado de curva. Verifique a URL na sidebar.")
-    else:
-        df_c = df_curva_raw.copy()
+        return
 
-        # ── KPIs ──────────────────────────────────────────────────────────────
-        lf_med  = df_c["lf_atual"].mean()
-        lf_ref  = df_c["lf_pascoa_2026"].mean()
-        rat_med = df_c["ratio"].mean()
-        acima   = int((df_c["ratio"] >= 1).sum())
-        abaixo  = int((df_c["ratio"] < 1).sum())
-        rat_cls = "c-grn" if rat_med >= 1 else "c-red"
-        rat_dot = "#2d6a4f" if rat_med >= 1 else "#c0392b"
+    df_c = df_raw.copy()
 
-        st.markdown(f"""
-        <div class="kpi-strip" style="grid-template-columns:repeat(5,1fr)">
-          <div class="kpi c-grn"><div class="kpi-lbl"><span class="kpi-dot" style="background:#2d6a4f"></span>LF Atual médio</div>
-            <div class="kpi-val">{lf_med:.0%}</div></div>
-          <div class="kpi c-blu"><div class="kpi-lbl"><span class="kpi-dot" style="background:#2c3e7a"></span>LF Referência</div>
-            <div class="kpi-val">{lf_ref:.0%}</div></div>
-          <div class="kpi {rat_cls}"><div class="kpi-lbl"><span class="kpi-dot" style="background:{rat_dot}"></span>Ratio médio</div>
-            <div class="kpi-val">{rat_med:.2f}</div></div>
-          <div class="kpi c-grn"><div class="kpi-lbl"><span class="kpi-dot" style="background:#2d6a4f"></span>Acima da ref.</div>
-            <div class="kpi-val">{acima}</div></div>
-          <div class="kpi c-red"><div class="kpi-lbl"><span class="kpi-dot" style="background:#c0392b"></span>Abaixo da ref.</div>
-            <div class="kpi-val">{abaixo}</div></div>
-        </div>
-        """, unsafe_allow_html=True)
+    # ── KPIs ──────────────────────────────────────────────────────────────────
+    lf_med  = df_c["lf_atual"].mean()
+    lf_ref  = df_c["lf_pascoa_2026"].mean()
+    rat_med = df_c["ratio"].mean()
+    acima   = int((df_c["ratio"] >= 1).sum())
+    abaixo  = int((df_c["ratio"] < 1).sum())
+    rat_cls = "c-grn" if rat_med >= 1 else "c-red"
+    rat_dot = "#2d6a4f" if rat_med >= 1 else "#c0392b"
 
-        # ── Gráfico ───────────────────────────────────────────────────────────
-        df_chart = (df_c.groupby("sentido")
-                    .agg(lf_atual=("lf_atual","mean"), lf_ref=("lf_pascoa_2026","mean"),
-                         ratio=("ratio","mean"), occ=("occ_atual","mean"))
-                    .reset_index().sort_values("occ", ascending=False).head(12))
-        max_lf = max(df_chart["lf_atual"].max(), df_chart["lf_ref"].max(), 0.01)
-        chart_rows = ""
-        for _, r in df_chart.iterrows():
-            lf_a  = float(r["lf_atual"]) if pd.notna(r["lf_atual"]) else 0
-            lf_r  = float(r["lf_ref"])   if pd.notna(r["lf_ref"])   else 0
-            rat   = float(r["ratio"])    if pd.notna(r["ratio"])    else 0
-            w_a   = min(lf_a / max_lf * 100, 100)
-            w_r   = min(lf_r / max_lf * 100, 100)
-            col_a = "#2d6a4f" if lf_a >= lf_r else "#c0392b"
-            rat_c = "ng" if rat >= 1 else "nr"
-            chart_rows += (
-                f'<div class="hbar-row">'
-                f'<div style="width:80px;text-align:right;flex-shrink:0"><span class="hbar-lbl">{r["sentido"]}</span></div>'
-                f'<div style="flex:1;display:flex;flex-direction:column;gap:3px">'
-                f'<div class="hbar-track" style="height:13px">'
-                f'<div class="hbar-fill" style="width:{w_a:.1f}%;background:{col_a}">'
-                f'<span class="hbar-val" style="font-size:.6rem">{lf_a:.0%}</span></div></div>'
-                f'<div class="hbar-track" style="height:13px;background:#e8e8ed">'
-                f'<div class="hbar-fill" style="width:{w_r:.1f}%;background:#9ab8d4">'
-                f'<span class="hbar-val" style="font-size:.6rem;color:#1a1a18">{lf_r:.0%}</span></div></div>'
-                f'</div>'
-                f'<div style="width:44px;text-align:right;flex-shrink:0">'
-                f'<span class="{rat_c}" style="font-size:.76rem">{rat:.2f}x</span></div></div>'
-            )
-        st.markdown(f"""
-        <div class="chart-section">
-          <div class="section-title">LF Atual vs Referência — top rotas por ocupação</div>
-          <div class="section-sub">
-            <span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px">
-              <span style="width:10px;height:3px;background:#2d6a4f;border-radius:2px;display:inline-block"></span>LF Atual
-            </span>
-            <span style="display:inline-flex;align-items:center;gap:5px">
-              <span style="width:10px;height:3px;background:#9ab8d4;border-radius:2px;display:inline-block"></span>LF Referência (Páscoa)
-            </span>
-          </div>
-          <div class="chart-col" style="margin-top:12px;max-width:700px">{chart_rows}</div>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="kpi-strip" style="grid-template-columns:repeat(5,1fr)">
+      <div class="kpi c-grn"><div class="kpi-lbl"><span class="kpi-dot" style="background:#2d6a4f"></span>LF Atual médio</div>
+        <div class="kpi-val">{lf_med:.0%}</div></div>
+      <div class="kpi c-blu"><div class="kpi-lbl"><span class="kpi-dot" style="background:#2c3e7a"></span>LF Referência</div>
+        <div class="kpi-val">{lf_ref:.0%}</div></div>
+      <div class="kpi {rat_cls}"><div class="kpi-lbl"><span class="kpi-dot" style="background:{rat_dot}"></span>Ratio médio</div>
+        <div class="kpi-val">{rat_med:.2f}</div></div>
+      <div class="kpi c-grn"><div class="kpi-lbl"><span class="kpi-dot" style="background:#2d6a4f"></span>Acima da ref.</div>
+        <div class="kpi-val">{acima}</div></div>
+      <div class="kpi c-red"><div class="kpi-lbl"><span class="kpi-dot" style="background:#c0392b"></span>Abaixo da ref.</div>
+        <div class="kpi-val">{abaixo}</div></div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        # ── Filtros ───────────────────────────────────────────────────────────
-        col_f1, col_f2, col_f3 = st.columns(3)
-        with col_f1:
-            datas_c     = sorted(df_c["data"].dt.date.unique())
-            datas_c_sel = st.multiselect("Data", options=datas_c, default=datas_c,
-                                         format_func=lambda d: d.strftime("%d/%m"), key="datas_curva")
-        with col_f2:
-            turnos_c   = sorted(df_c["turno"].dropna().unique())
-            turnos_sel = st.multiselect("Turno", options=turnos_c, default=turnos_c, key="turnos_curva")
-        with col_f3:
-            rota_c = st.text_input("Buscar rota", placeholder="ex: BHZ-RIO", key="rota_curva")
-
-        df_cv = df_c.copy()
-        if datas_c_sel: df_cv = df_cv[df_cv["data"].dt.date.isin(datas_c_sel)]
-        if turnos_sel:  df_cv = df_cv[df_cv["turno"].isin(turnos_sel)]
-        if rota_c:      df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
-        df_cv = df_cv.sort_values(["occ_atual","ratio"], ascending=[False, False]).reset_index(drop=True)
-
-        # ── FILTRO DE JÁ ENVIADOS ─────────────────────────────────────────────
-        # chave única por linha: data + turno + sentido
-        if "linhas_enviadas" not in st.session_state:
-            st.session_state.linhas_enviadas = set()
-
-        def chave_linha(row):
-            data_str = pd.to_datetime(row["data"]).strftime("%Y-%m-%d") if pd.notna(row["data"]) else ""
-            return f"{data_str}|{row.get('turno','')}|{row.get('sentido','')}"
-
-        # aplica o filtro — oculta do editor o que já foi enviado
-        mask_enviadas = df_cv.apply(chave_linha, axis=1).isin(st.session_state.linhas_enviadas)
-        n_ocultas     = int(mask_enviadas.sum())
-        df_cv_editor  = df_cv[~mask_enviadas].reset_index(drop=True)
-
-        # aviso se há linhas ocultas
-        if n_ocultas > 0:
-            col_oc1, col_oc2 = st.columns([5, 1])
-            with col_oc1:
-                st.markdown(f"""
-                <div style="padding:8px 14px;background:#fff7ed;border:1px solid #fed7aa;
-                            border-radius:6px;margin-bottom:.8rem;font-size:.8rem;color:#92400e">
-                  <strong>{n_ocultas}</strong> linha{"s" if n_ocultas>1 else ""} já enviada{"s" if n_ocultas>1 else ""} oculta{"s" if n_ocultas>1 else ""} da tabela.
-                  Clique em "Mostrar todas" para reexibi-las.
-                </div>
-                """, unsafe_allow_html=True)
-            with col_oc2:
-                if st.button("👁 Mostrar todas", key="mostrar_enviadas"):
-                    st.session_state.linhas_enviadas = set()
-                    st.rerun()
-
-        # ── EDITOR DE PRICING ────────────────────────────────────────────────
-        st.markdown("""
-        <div style="margin:1.2rem 0 .4rem">
-          <div class="section-title" style="font-size:.95rem">Editor de Pricing</div>
-          <div class="section-sub">
-            Preencha <strong>✏️ Preço novo</strong> nas linhas que deseja alterar.
-            O mult é calculado automaticamente. Linhas sem preço novo são ignoradas.
-            Use o botão <strong>Reset</strong> para limpar todas as edições.
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # chave de versão — mudar força recriação do editor
-        if "editor_version" not in st.session_state:
-            st.session_state.editor_version = 0
-
-        # monta df para o editor com TODAS as colunas relevantes
-        cols_editor = [
-            "data", "turno", "rota_principal", "sentido",
-            "occ_atual", "pax", "vagas_restantes",
-            "lf_atual", "lf_pascoa_2026", "ratio",
-            "tkm_atual", "tkm_comp", "price_cc",
-            "preco_praticado", "preco_com_flutuacao",
-            "mult_final", "mult_flutuacao",
-            "antecedencia",
-        ]
-        cols_presentes = [c for c in cols_editor if c in df_cv_editor.columns]
-        df_editor = df_cv_editor[cols_presentes].copy()
-
-        # formata colunas de exibição
-        df_editor["data_fmt"] = pd.to_datetime(df_editor["data"]).dt.strftime("%d/%m/%Y")
-        if "occ_atual"       in df_editor.columns: df_editor["occ_pct"]  = (df_editor["occ_atual"]       * 100).round(1).astype(str) + "%"
-        if "lf_atual"        in df_editor.columns: df_editor["lf_a_fmt"] = (df_editor["lf_atual"]        * 100).round(1).astype(str) + "%"
-        if "lf_pascoa_2026"  in df_editor.columns: df_editor["lf_r_fmt"] = (df_editor["lf_pascoa_2026"]  * 100).round(1).astype(str) + "%"
-        if "ratio"           in df_editor.columns: df_editor["ratio_fmt"]= df_editor["ratio"].round(3).astype(str) + "x"
-
-        # coluna editável — preço novo (começa None)
-        df_editor["✏️ Preço novo"] = None
-
-        # colunas que aparecem no editor (ordem visual)
-        show_cols = (
-            ["incluir",
-             "data_fmt","turno","rota_principal","sentido","antecedencia",
-             "occ_pct","pax","vagas_restantes",
-             "lf_a_fmt","lf_r_fmt","ratio_fmt",
-             "tkm_atual","tkm_comp","price_cc",
-             "preco_praticado","preco_com_flutuacao",
-             "mult_final","mult_flutuacao",
-             "✏️ Preço novo"]
+    # ── Gráfico ────────────────────────────────────────────────────────────────
+    df_chart = (df_c.groupby("sentido")
+                .agg(lf_atual=("lf_atual","mean"), lf_ref=("lf_pascoa_2026","mean"),
+                     ratio=("ratio","mean"), occ=("occ_atual","mean"))
+                .reset_index().sort_values("occ", ascending=False).head(12))
+    max_lf = max(df_chart["lf_atual"].max(), df_chart["lf_ref"].max(), 0.01)
+    chart_rows = ""
+    for _, r in df_chart.iterrows():
+        lf_a  = float(r["lf_atual"]) if pd.notna(r["lf_atual"]) else 0
+        lf_r  = float(r["lf_ref"])   if pd.notna(r["lf_ref"])   else 0
+        rat   = float(r["ratio"])    if pd.notna(r["ratio"])    else 0
+        w_a   = min(lf_a / max_lf * 100, 100)
+        w_r   = min(lf_r / max_lf * 100, 100)
+        col_a = "#2d6a4f" if lf_a >= lf_r else "#c0392b"
+        rat_c = "ng" if rat >= 1 else "nr"
+        chart_rows += (
+            f'<div class="hbar-row">'
+            f'<div style="width:80px;text-align:right;flex-shrink:0"><span class="hbar-lbl">{r["sentido"]}</span></div>'
+            f'<div style="flex:1;display:flex;flex-direction:column;gap:3px">'
+            f'<div class="hbar-track" style="height:13px">'
+            f'<div class="hbar-fill" style="width:{w_a:.1f}%;background:{col_a}">'
+            f'<span class="hbar-val" style="font-size:.6rem">{lf_a:.0%}</span></div></div>'
+            f'<div class="hbar-track" style="height:13px;background:#e8e8ed">'
+            f'<div class="hbar-fill" style="width:{w_r:.1f}%;background:#9ab8d4">'
+            f'<span class="hbar-val" style="font-size:.6rem;color:#1a1a18">{lf_r:.0%}</span></div></div>'
+            f'</div>'
+            f'<div style="width:44px;text-align:right;flex-shrink:0">'
+            f'<span class="{rat_c}" style="font-size:.76rem">{rat:.2f}x</span></div></div>'
         )
+    st.markdown(f"""
+    <div class="chart-section">
+      <div class="section-title">LF Atual vs Referência — top rotas por ocupação</div>
+      <div class="section-sub">
+        <span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px">
+          <span style="width:10px;height:3px;background:#2d6a4f;border-radius:2px;display:inline-block"></span>LF Atual
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:5px">
+          <span style="width:10px;height:3px;background:#9ab8d4;border-radius:2px;display:inline-block"></span>LF Referência
+        </span>
+      </div>
+      <div class="chart-col" style="margin-top:12px;max-width:700px">{chart_rows}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        # coluna incluir — por padrão todas marcadas
-        df_editor["incluir"] = True
+    # ── Filtros ────────────────────────────────────────────────────────────────
+    col_f1, col_f2, col_f3 = st.columns(3)
+    with col_f1:
+        datas_c     = sorted(df_c["data"].dt.date.unique())
+        datas_c_sel = st.multiselect("Data", options=datas_c, default=datas_c,
+                                     format_func=lambda d: d.strftime("%d/%m"),
+                                     key=f"{tab_key}_datas")
+    with col_f2:
+        turnos_c   = sorted(df_c["turno"].dropna().unique())
+        turnos_sel = st.multiselect("Turno", options=turnos_c, default=turnos_c,
+                                    key=f"{tab_key}_turnos")
+    with col_f3:
+        rota_c = st.text_input("Buscar rota", placeholder="ex: BHZ-RIO", key=f"{tab_key}_rota")
 
-        show_cols = [c for c in show_cols if c in df_editor.columns]
-        df_show   = df_editor[show_cols].copy()
+    df_cv = df_c.copy()
+    if datas_c_sel: df_cv = df_cv[df_cv["data"].dt.date.isin(datas_c_sel)]
+    if turnos_sel:  df_cv = df_cv[df_cv["turno"].isin(turnos_sel)]
+    if rota_c:      df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
+    df_cv = df_cv.sort_values(["occ_atual","ratio"], ascending=[False, False]).reset_index(drop=True)
 
-        col_config = {
-            "incluir":             st.column_config.CheckboxColumn(
-                                       "✅ Incluir",
-                                       help="Desmarque para excluir esta linha do acionamento",
-                                       default=True,
-                                   ),
-            "data_fmt":            st.column_config.TextColumn("Data",            disabled=True),
-            "turno":               st.column_config.TextColumn("Turno",           disabled=True),
-            "rota_principal":      st.column_config.TextColumn("Rota principal",  disabled=True),
-            "sentido":             st.column_config.TextColumn("Sentido",         disabled=True),
-            "antecedencia":        st.column_config.NumberColumn("Antec.",        disabled=True),
-            "occ_pct":             st.column_config.TextColumn("Occ",             disabled=True),
-            "pax":                 st.column_config.NumberColumn("PAX",           disabled=True),
-            "vagas_restantes":     st.column_config.NumberColumn("Vagas rest.",   disabled=True),
-            "lf_a_fmt":            st.column_config.TextColumn("LF Atual",        disabled=True),
-            "lf_r_fmt":            st.column_config.TextColumn("LF Ref",          disabled=True),
-            "ratio_fmt":           st.column_config.TextColumn("Ratio",           disabled=True),
-            "tkm_atual":           st.column_config.NumberColumn("TKM Atual",     disabled=True, format="R$ %.0f"),
-            "tkm_comp":            st.column_config.NumberColumn("TKM Comp",      disabled=True, format="R$ %.0f"),
-            "price_cc":            st.column_config.NumberColumn("Price CC",      disabled=True, format="R$ %.0f"),
-            "preco_praticado":     st.column_config.NumberColumn("Preço prat.",   disabled=True, format="R$ %.2f"),
-            "preco_com_flutuacao": st.column_config.NumberColumn("Preço c/ flut.",disabled=True, format="R$ %.2f"),
-            "mult_final":          st.column_config.NumberColumn("Mult Final",    disabled=True, format="%.3fx"),
-            "mult_flutuacao":      st.column_config.NumberColumn("Mult Flut.",    disabled=True, format="%.3fx"),
-            "✏️ Preço novo": st.column_config.NumberColumn(
-                "✏️ Preço novo",
-                help="Digite o preço desejado — mult será calculado automaticamente",
-                min_value=0.0,
-                format="R$ %.2f",
-            ),
-        }
+    # ── Filtro de já enviados ──────────────────────────────────────────────────
+    key_enviadas = f"{tab_key}_linhas_enviadas"
+    if key_enviadas not in st.session_state:
+        st.session_state[key_enviadas] = set()
 
-        edited = st.data_editor(
-            df_show,
-            use_container_width=True,
-            hide_index=True,
-            column_config=col_config,
-            num_rows="fixed",
-            key=f"pricing_editor_{st.session_state.editor_version}",
-        )
+    def chave_linha(row):
+        data_str = pd.to_datetime(row["data"]).strftime("%Y-%m-%d") if pd.notna(row["data"]) else ""
+        return f"{data_str}|{row.get('turno','')}|{row.get('sentido','')}"
 
-        # ── PREVIEW DO ACIONAMENTO ────────────────────────────────────────────
-        # filtra: tem preco novo E está marcado como incluir
-        df_editado = edited[
-            edited["✏️ Preço novo"].notna() & edited["incluir"].fillna(True)
-        ].copy()
+    mask_enviadas = df_cv.apply(chave_linha, axis=1).isin(st.session_state[key_enviadas])
+    n_ocultas     = int(mask_enviadas.sum())
+    df_cv_editor  = df_cv[~mask_enviadas].reset_index(drop=True)
 
-        # conta excluídas para feedback
-        n_excluidas = int((~edited["incluir"].fillna(True)).sum())
-
-        if not df_editado.empty:
-            # base do cálculo: preco_com_flutuacao (cadeia incremental)
-            # fallback para preco_praticado se preco_com_flutuacao for nulo
-            # lógica: mult_novo = preco_novo / preco_com_flutuacao
-            # → aumento: 400 / 322.45 = 1.2404x  (> 1)
-            # → redução: 250 / 322.45 = 0.7754x  (< 1)
-            # o Databricks aplica esse mult SOBRE o preco_com_flutuacao atual
-            df_editado["_preco_prat"]      = df_cv_editor.loc[df_editado.index, "preco_praticado"].values
-            df_editado["_preco_com_flut"]  = df_cv_editor.loc[df_editado.index, "preco_com_flutuacao"].values \
-                                             if "preco_com_flutuacao" in df_cv_editor.columns else None
-            # usa preco_com_flutuacao como base; fallback para preco_praticado
-            base_vals = pd.Series(df_editado["_preco_com_flut"]).fillna(
-                        pd.Series(df_editado["_preco_prat"])).values
-            df_editado["_base_calc"] = base_vals
-            df_editado["mult_novo"]  = (df_editado["✏️ Preço novo"] / df_editado["_base_calc"]).round(6)
-
-            df_acionamento = pd.DataFrame({
-                "data":                 pd.to_datetime(df_editado["data_fmt"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d"),
-                "turno":                df_editado["turno"].values,
-                "rota_principal":       df_editado["rota_principal"].values,
-                "sentido":              df_editado["sentido"].values,
-                "preco_praticado":      df_editado["_preco_prat"].values,
-                "preco_com_flutuacao":  df_editado["_base_calc"].values,
-                "preco_novo":           df_editado["✏️ Preço novo"].values,
-                "mult":                 df_editado["mult_novo"].values,
-            })
-
-            n_edit = len(df_acionamento)
-            excl_txt = f" · {n_excluidas} ignorada{'s' if n_excluidas>1 else ''}" if n_excluidas > 0 else ""
+    if n_ocultas > 0:
+        col_oc1, col_oc2 = st.columns([5, 1])
+        with col_oc1:
             st.markdown(f"""
-            <div class="acion-banner">
-              <span class="acion-txt">✅ {n_edit} linha{"s" if n_edit>1 else ""} no acionamento{excl_txt}</span>
+            <div style="padding:8px 14px;background:#fff7ed;border:1px solid #fed7aa;
+                        border-radius:6px;margin-bottom:.8rem;font-size:.8rem;color:#92400e">
+              <strong>{n_ocultas}</strong> linha{"s" if n_ocultas>1 else ""} já enviada{"s" if n_ocultas>1 else ""} oculta{"s" if n_ocultas>1 else ""}.
+              Clique em "Mostrar todas" para reexibi-las.
             </div>
             """, unsafe_allow_html=True)
-
-            st.dataframe(df_acionamento, use_container_width=True, hide_index=True)
-
-            # botões de ação
-            col_b1, col_b2, col_b3, _ = st.columns([1, 1, 1, 3])
-
-            with col_b1:
-                csv_bytes = df_acionamento.to_csv(index=False).encode("utf-8")
-                if st.download_button(
-                    label="⬇ Baixar CSV",
-                    data=csv_bytes,
-                    file_name=f"pricing_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                    mime="text/csv",
-                    use_container_width=True,
-                ):
-                    # marca linhas como enviadas após download
-                    for _, r in df_acionamento.iterrows():
-                        st.session_state.linhas_enviadas.add(
-                            f"{r['data']}|{r['turno']}|{r['sentido']}"
-                        )
-                    st.session_state.editor_version += 1
-                    st.rerun()
-
-            with col_b2:
-                if st.button("🚀 Enviar pro GitHub", use_container_width=True,
-                             type="primary", key="push_pricing"):
-                    gh_token = st.session_state.get("gh_token_pricing", "")
-                    if not gh_token:
-                        st.warning("Cole seu token no campo abaixo.")
-                    else:
-                        repo   = "meninosia2026-beep/aceleracao_vendas"
-                        branch = "main"
-                        path   = f"data/pricing_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
-                        url_gh = f"https://api.github.com/repos/{repo}/contents/{path}"
-                        hdrs   = {"Authorization": f"token {gh_token}", "Accept": "application/vnd.github.v3+json"}
-                        enc    = base64.b64encode(csv_bytes).decode("utf-8")
-                        r_gh   = requests.put(url_gh, headers=hdrs,
-                                              data=json.dumps({"message": f"pricing: {path}",
-                                                               "content": enc, "branch": branch}))
-                        if r_gh.status_code in (200, 201):
-                            # marca linhas como enviadas após push
-                            for _, r in df_acionamento.iterrows():
-                                st.session_state.linhas_enviadas.add(
-                                    f"{r['data']}|{r['turno']}|{r['sentido']}"
-                                )
-                            st.session_state.editor_version += 1
-                            st.success(f"✅ Enviado: {path}")
-                            st.rerun()
-                        else:
-                            st.error(f"Erro {r_gh.status_code}: {r_gh.json().get('message')}")
-
-            with col_b3:
-                if st.button("🔄 Reset edições", use_container_width=True, key="reset_pricing"):
-                    st.session_state.editor_version += 1
-                    st.session_state.linhas_enviadas = set()
-                    st.rerun()
-
-            with st.expander("🔑 GitHub Token para envio"):
-                st.text_input("Token", type="password", key="gh_token_pricing",
-                              help="Necessário só para 'Enviar pro GitHub'. Fica apenas na sessão.")
-
-        else:
-            # sem edições — mostra botão de reset só se houve edição anterior
-            st.markdown("""
-            <div style="margin-top:.8rem;padding:10px 16px;background:var(--bg2);
-                        border:1px solid var(--bdr);border-radius:6px">
-              <span style="font-size:.82rem;color:var(--muted)">
-                Preencha <strong>✏️ Preço novo</strong> nas linhas que deseja alterar para gerar o acionamento.
-              </span>
-            </div>
-            """, unsafe_allow_html=True)
-
-            if st.button("🔄 Reset edições", key="reset_pricing_empty"):
-                st.session_state.editor_version += 1
-                st.session_state.linhas_enviadas = set()
+        with col_oc2:
+            if st.button("👁 Mostrar todas", key=f"{tab_key}_mostrar"):
+                st.session_state[key_enviadas] = set()
                 st.rerun()
 
+    # ── Editor de Pricing ──────────────────────────────────────────────────────
+    st.markdown("""
+    <div style="margin:1.2rem 0 .4rem">
+      <div class="section-title" style="font-size:.95rem">Editor de Pricing</div>
+      <div class="section-sub">
+        Preencha <strong>✏️ Preço novo</strong> nas linhas que deseja alterar.
+        Desmarque <strong>✅ Incluir</strong> para ignorar uma linha.
+        Use <strong>Reset</strong> para limpar tudo.
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    key_version = f"{tab_key}_editor_version"
+    if key_version not in st.session_state:
+        st.session_state[key_version] = 0
+
+    cols_editor    = ["data","turno","rota_principal","sentido","antecedencia",
+                      "occ_atual","pax","vagas_restantes","lf_atual","lf_pascoa_2026","ratio",
+                      "tkm_atual","tkm_comp","price_cc","preco_praticado","preco_com_flutuacao",
+                      "mult_final","mult_flutuacao"]
+    cols_presentes = [c for c in cols_editor if c in df_cv_editor.columns]
+    df_editor      = df_cv_editor[cols_presentes].copy()
+
+    df_editor["data_fmt"] = pd.to_datetime(df_editor["data"]).dt.strftime("%d/%m/%Y")
+    if "occ_atual"      in df_editor.columns: df_editor["occ_pct"]  = (df_editor["occ_atual"]      * 100).round(1).astype(str) + "%"
+    if "lf_atual"       in df_editor.columns: df_editor["lf_a_fmt"] = (df_editor["lf_atual"]       * 100).round(1).astype(str) + "%"
+    if "lf_pascoa_2026" in df_editor.columns: df_editor["lf_r_fmt"] = (df_editor["lf_pascoa_2026"] * 100).round(1).astype(str) + "%"
+    if "ratio"          in df_editor.columns: df_editor["ratio_fmt"]= df_editor["ratio"].round(3).astype(str) + "x"
+
+    df_editor["incluir"]       = True
+    df_editor["✏️ Preço novo"] = None
+
+    show_cols = ["incluir","data_fmt","turno","rota_principal","sentido","antecedencia",
+                 "occ_pct","pax","vagas_restantes","lf_a_fmt","lf_r_fmt","ratio_fmt",
+                 "tkm_atual","tkm_comp","price_cc","preco_praticado","preco_com_flutuacao",
+                 "mult_final","mult_flutuacao","✏️ Preço novo"]
+    show_cols  = [c for c in show_cols if c in df_editor.columns]
+    df_show    = df_editor[show_cols].copy()
+
+    col_config = {
+        "incluir":             st.column_config.CheckboxColumn("✅ Incluir", default=True),
+        "data_fmt":            st.column_config.TextColumn("Data",             disabled=True),
+        "turno":               st.column_config.TextColumn("Turno",            disabled=True),
+        "rota_principal":      st.column_config.TextColumn("Rota principal",   disabled=True),
+        "sentido":             st.column_config.TextColumn("Sentido",          disabled=True),
+        "antecedencia":        st.column_config.NumberColumn("Antec.",         disabled=True),
+        "occ_pct":             st.column_config.TextColumn("Occ",              disabled=True),
+        "pax":                 st.column_config.NumberColumn("PAX",            disabled=True),
+        "vagas_restantes":     st.column_config.NumberColumn("Vagas rest.",    disabled=True),
+        "lf_a_fmt":            st.column_config.TextColumn("LF Atual",         disabled=True),
+        "lf_r_fmt":            st.column_config.TextColumn("LF Ref",           disabled=True),
+        "ratio_fmt":           st.column_config.TextColumn("Ratio",            disabled=True),
+        "tkm_atual":           st.column_config.NumberColumn("TKM Atual",      disabled=True, format="R$ %.0f"),
+        "tkm_comp":            st.column_config.NumberColumn("TKM Comp",       disabled=True, format="R$ %.0f"),
+        "price_cc":            st.column_config.NumberColumn("Price CC",       disabled=True, format="R$ %.0f"),
+        "preco_praticado":     st.column_config.NumberColumn("Preço prat.",    disabled=True, format="R$ %.2f"),
+        "preco_com_flutuacao": st.column_config.NumberColumn("Preço c/ flut.", disabled=True, format="R$ %.2f"),
+        "mult_final":          st.column_config.NumberColumn("Mult Final",     disabled=True, format="%.3fx"),
+        "mult_flutuacao":      st.column_config.NumberColumn("Mult Flut.",     disabled=True, format="%.3fx"),
+        "✏️ Preço novo": st.column_config.NumberColumn(
+            "✏️ Preço novo", min_value=0.0, format="R$ %.2f",
+            help="Digite o preço desejado — mult calculado sobre preco_com_flutuacao",
+        ),
+    }
+
+    edited = st.data_editor(
+        df_show, use_container_width=True, hide_index=True,
+        column_config=col_config, num_rows="fixed",
+        key=f"{tab_key}_editor_{st.session_state[key_version]}",
+    )
+
+    # ── Preview do acionamento ─────────────────────────────────────────────────
+    df_editado  = edited[edited["✏️ Preço novo"].notna() & edited["incluir"].fillna(True)].copy()
+    n_excluidas = int((~edited["incluir"].fillna(True)).sum())
+
+    if not df_editado.empty:
+        df_editado["_preco_prat"]     = df_cv_editor.loc[df_editado.index, "preco_praticado"].values
+        df_editado["_preco_com_flut"] = df_cv_editor.loc[df_editado.index, "preco_com_flutuacao"].values \
+                                        if "preco_com_flutuacao" in df_cv_editor.columns else None
+        base_vals = pd.Series(df_editado["_preco_com_flut"]).fillna(
+                    pd.Series(df_editado["_preco_prat"])).values
+        df_editado["_base_calc"] = base_vals
+        df_editado["mult_novo"]  = (df_editado["✏️ Preço novo"] / df_editado["_base_calc"]).round(6)
+
+        df_acionamento = pd.DataFrame({
+            "data":                pd.to_datetime(df_editado["data_fmt"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d"),
+            "turno":               df_editado["turno"].values,
+            "rota_principal":      df_editado["rota_principal"].values,
+            "sentido":             df_editado["sentido"].values,
+            "preco_praticado":     df_editado["_preco_prat"].values,
+            "preco_com_flutuacao": df_editado["_base_calc"].values,
+            "preco_novo":          df_editado["✏️ Preço novo"].values,
+            "mult":                df_editado["mult_novo"].values,
+        })
+
+        n_edit   = len(df_acionamento)
+        excl_txt = f" · {n_excluidas} ignorada{'s' if n_excluidas>1 else ''}" if n_excluidas > 0 else ""
         st.markdown(f"""
-        <div class="footer">
-          <span class="ftxt"><strong style="color:var(--txt)">{len(df_cv_editor)}</strong> linhas no editor · {len(df_cv)} total · {n_ocultas} já enviadas ocultas</span>
-          <span class="ftxt">mult = preço novo / preço c/ flut. · &gt; 1 aumento · &lt; 1 redução</span>
-        </div>""", unsafe_allow_html=True)
+        <div class="acion-banner">
+          <span class="acion-txt">✅ {n_edit} linha{"s" if n_edit>1 else ""} no acionamento{excl_txt}</span>
+        </div>
+        """, unsafe_allow_html=True)
+        st.dataframe(df_acionamento, use_container_width=True, hide_index=True)
+
+        col_b1, col_b2, col_b3, _ = st.columns([1, 1, 1, 3])
+        csv_bytes = df_acionamento.to_csv(index=False).encode("utf-8")
+
+        with col_b1:
+            if st.download_button(
+                label="⬇ Baixar CSV",
+                data=csv_bytes,
+                file_name=f"pricing_{tab_key}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                mime="text/csv",
+                use_container_width=True,
+                key=f"{tab_key}_download",
+            ):
+                for _, r in df_acionamento.iterrows():
+                    st.session_state[key_enviadas].add(f"{r['data']}|{r['turno']}|{r['sentido']}")
+                st.session_state[key_version] += 1
+                st.rerun()
+
+        with col_b2:
+            if st.button("🚀 Enviar pro GitHub", use_container_width=True,
+                         type="primary", key=f"{tab_key}_push"):
+                gh_token = st.session_state.get(f"{tab_key}_gh_token", "")
+                if not gh_token:
+                    st.warning("Cole seu token no campo abaixo.")
+                else:
+                    repo   = "meninosia2026-beep/aceleracao_vendas"
+                    branch = "main"
+                    path   = f"data/pricing_{tab_key}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+                    url_gh = f"https://api.github.com/repos/{repo}/contents/{path}"
+                    hdrs   = {"Authorization": f"token {gh_token}", "Accept": "application/vnd.github.v3+json"}
+                    enc    = base64.b64encode(csv_bytes).decode("utf-8")
+                    r_gh   = requests.put(url_gh, headers=hdrs,
+                                          data=json.dumps({"message": f"pricing: {path}",
+                                                           "content": enc, "branch": branch}))
+                    if r_gh.status_code in (200, 201):
+                        for _, r in df_acionamento.iterrows():
+                            st.session_state[key_enviadas].add(f"{r['data']}|{r['turno']}|{r['sentido']}")
+                        st.session_state[key_version] += 1
+                        st.success(f"✅ Enviado: {path}")
+                        st.rerun()
+                    else:
+                        st.error(f"Erro {r_gh.status_code}: {r_gh.json().get('message')}")
+
+        with col_b3:
+            if st.button("🔄 Reset edições", use_container_width=True, key=f"{tab_key}_reset"):
+                st.session_state[key_version] += 1
+                st.session_state[key_enviadas] = set()
+                st.rerun()
+
+        with st.expander("🔑 GitHub Token para envio"):
+            st.text_input("Token", type="password", key=f"{tab_key}_gh_token",
+                          help="Necessário só para 'Enviar pro GitHub'. Fica apenas na sessão.")
+    else:
+        st.markdown("""
+        <div style="margin-top:.8rem;padding:10px 16px;background:var(--bg2);
+                    border:1px solid var(--bdr);border-radius:6px">
+          <span style="font-size:.82rem;color:var(--muted)">
+            Preencha <strong>✏️ Preço novo</strong> nas linhas que deseja alterar.
+          </span>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("🔄 Reset edições", key=f"{tab_key}_reset_empty"):
+            st.session_state[key_version] += 1
+            st.session_state[key_enviadas] = set()
+            st.rerun()
+
+    st.markdown(f"""
+    <div class="footer">
+      <span class="ftxt"><strong style="color:var(--txt)">{len(df_cv_editor)}</strong> linhas no editor · {len(df_cv)} total · {n_ocultas} já enviadas ocultas</span>
+      <span class="ftxt">mult = preço novo / preço c/ flut. · &gt; 1 aumento · &lt; 1 redução</span>
+    </div>""", unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 2 — CURVA DE FERIADO
+# ══════════════════════════════════════════════════════════════════════════════
+with tab2:
+    render_curva(df_curva_raw, tab_key="t2", titulo="Curva de Feriado")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 3 — CURVA DE FERIADO 2
+# ══════════════════════════════════════════════════════════════════════════════
+with tab3:
+    render_curva(df_curva2_raw, tab_key="t3", titulo="Curva de Feriado 2")
