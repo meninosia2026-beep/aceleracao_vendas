@@ -469,7 +469,6 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1.2rem 0
 </style>
 """, unsafe_allow_html=True)
 
-# ── CONSTANTES ────────────────────────────────────────────────────────────────
 SINAL_ORDER = {
     "🚨 ABAIXO FORECAST + DESACEL - URGENTE": 1,
     "⚠️ ABAIXO FORECAST - PROXIMA VIAGEM":    2,
@@ -489,7 +488,6 @@ SINAL_META = {
     "⚪ NORMAL":                               {"short":"Normal",       "badge":"",     "dot":"#b8b8b0"},
 }
 
-# ── LOAD ──────────────────────────────────────────────────────────────────────
 @st.cache_data(ttl=300)
 def load_data(url: str) -> pd.DataFrame:
     try:
@@ -502,33 +500,40 @@ def load_data(url: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 def prep_acel(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty: return df
+    if df.empty:
+        return df
     df = df.copy()
     int_cols   = ["pax","capacidade_atual","assentos_disponiveis","pax_d1","pax_d2","pax_d3","pax_d4","pax_d5",
                   "pax_hoje_parcial","predict_consenso","pax_faltam_forecast","predict_time_series","predict_eixo_sentido"]
     float_cols = ["occ_atual","tkm_comp","aceleracao_pct","aceleracao_abs","tendencia_linear",
                   "pct_atingimento_forecast","media_d2_d5","load_factor_atual"]
     for c in int_cols:
-        if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
     for c in float_cols:
-        if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce")
-    if "data" in df.columns: df["data"] = pd.to_datetime(df["data"])
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+    if "data" in df.columns:
+        df["data"] = pd.to_datetime(df["data"])
     return df
 
 def prep_curva(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty: return df
+    if df.empty:
+        return df
     df = df.copy()
     float_cols = ["occ_atual","lf_pascoa_2026","lf_atual","ratio","tkm_comp",
                   "preco_base","preco_est_draft","preco_com_sazonalidade","mult_final","price_cc",
                   "tkm_atual","mult_flutuacao","preco_com_flutuacao","preco_staff","preco_mult_flutuacao"]
     for c in float_cols:
-        if c in df.columns: df[c] = pd.to_numeric(df[c].replace("null", None), errors="coerce")
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c].replace("null", None), errors="coerce")
     for c in ["pax","capacidade_atual","vagas_restantes","antecedencia"]:
-        if c in df.columns: df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
-    if "data" in df.columns: df["data"] = pd.to_datetime(df["data"])
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
+    if "data" in df.columns:
+        df["data"] = pd.to_datetime(df["data"])
     return df
 
-# ── SCORE ─────────────────────────────────────────────────────────────────────
 def calcular_score(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     fc        = df["pct_atingimento_forecast"].fillna(0).clip(0, 150) / 150
@@ -539,10 +544,10 @@ def calcular_score(df: pd.DataFrame) -> pd.DataFrame:
     df["_score"] = (0.45 * occ) + (0.35 * fc) + (0.20 * acel_norm)
     return df
 
-# ── HELPERS HTML ──────────────────────────────────────────────────────────────
 def sinal_tag(sinal):
     m = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
-    if m["badge"]: return f'<span class="badge {m["badge"]}">{m["short"]}</span>'
+    if m["badge"]:
+        return f'<span class="badge {m["badge"]}">{m["short"]}</span>'
     return f'<span class="sinal-tag"><span class="sinal-dot" style="background:{m["dot"]}"></span>{m["short"]}</span>'
 
 def occ_html(v):
@@ -552,7 +557,8 @@ def occ_html(v):
         return (f'<div class="occ-row"><div class="occ-track">'
                 f'<div class="occ-fill" style="width:{pct:.0f}%;background:{col}"></div></div>'
                 f'<span class="om" style="color:{col}">{pct:.0f}%</span></div>')
-    except: return "—"
+    except:
+        return "—"
 
 def spark_html(d5, d4, d3, d2, d1):
     vals = [float(x) if str(x) not in ("nan","") else 0 for x in [d5,d4,d3,d2,d1]]
@@ -569,10 +575,13 @@ def spark_html(d5, d4, d3, d2, d1):
 def acel_html(pct):
     try:
         v = float(pct)
-        if v>30:  return f'<span class="ng">+{v:.0f}%</span>'
-        if v<-30: return f'<span class="nr">{v:.0f}%</span>'
+        if v > 30:
+            return f'<span class="ng">+{v:.0f}%</span>'
+        if v < -30:
+            return f'<span class="nr">{v:.0f}%</span>'
         return f'<span class="nm">{v:.0f}%</span>'
-    except: return '<span class="nm">—</span>'
+    except:
+        return '<span class="nm">—</span>'
 
 def fc_html(pct, faltam):
     try:
@@ -581,21 +590,27 @@ def fc_html(pct, faltam):
         ft  = (f'<br><span class="nm" style="font-size:.62rem">faltam {int(faltam)}</span>'
                if str(faltam) not in ("nan","") else "")
         return f'<span class="{cls}">{v:.0f}%</span>{ft}'
-    except: return "—"
+    except:
+        return "—"
 
 def tend_html(v):
     try:
         f = float(v)
-        if f>0.5:  return f'<span class="ng">↑ {f:.1f}</span>'
-        if f<-0.5: return f'<span class="nr">↓ {f:.1f}</span>'
+        if f > 0.5:
+            return f'<span class="ng">↑ {f:.1f}</span>'
+        if f < -0.5:
+            return f'<span class="nr">↓ {f:.1f}</span>'
         return f'<span class="nm">→ {f:.1f}</span>'
-    except: return '<span class="nm">—</span>'
+    except:
+        return '<span class="nm">—</span>'
 
 def mono_html(v, prefix="", suffix="", dec=0):
     try:
-        if str(v) in ("nan",""): return '<span class="nm">—</span>'
+        if str(v) in ("nan",""):
+            return '<span class="nm">—</span>'
         return f'<span class="nt">{prefix}{float(v):,.{dec}f}{suffix}</span>'
-    except: return '<span class="nm">—</span>'
+    except:
+        return '<span class="nm">—</span>'
 
 def score_bar(score):
     try:
@@ -603,7 +618,8 @@ def score_bar(score):
         return (f'<div class="score-wrap"><div class="score-track">'
                 f'<div class="score-fill" style="width:{pct:.0f}%"></div></div>'
                 f'<span class="score-val">{pct:.0f}</span></div>')
-    except: return "—"
+    except:
+        return "—"
 
 def lf_bar(v, ref=None):
     try:
@@ -613,16 +629,21 @@ def lf_bar(v, ref=None):
         return (f'<div class="occ-row"><div class="occ-track" style="width:52px">'
                 f'<div class="occ-fill" style="width:{pct:.0f}%;background:{col}"></div></div>'
                 f'<span class="om" style="color:{col}">{float(v):.0%}</span></div>')
-    except: return "—"
+    except:
+        return "—"
 
 def ratio_html(v):
     try:
         f = float(v)
-        if f>=1.2: return f'<span class="ng" style="font-weight:700">{f:.2f}x</span>'
-        if f>=1.0: return f'<span class="ng">{f:.2f}x</span>'
-        if f>=0.8: return f'<span class="no">{f:.2f}x</span>'
+        if f >= 1.2:
+            return f'<span class="ng" style="font-weight:700">{f:.2f}x</span>'
+        if f >= 1.0:
+            return f'<span class="ng">{f:.2f}x</span>'
+        if f >= 0.8:
+            return f'<span class="no">{f:.2f}x</span>'
         return f'<span class="nr">{f:.2f}x</span>'
-    except: return "—"
+    except:
+        return "—"
 
 def turno_badge(t):
     cores = {"MANHA":"#f97316","TARDE":"#2563eb","NOITE":"#7c3aed","MADRUGADA":"#374151"}
@@ -631,7 +652,6 @@ def turno_badge(t):
             f'font-size:.61rem;font-weight:600;background:{cor}18;color:{cor};'
             f'border:1px solid {cor}33">{t}</span>')
 
-# ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown('<div class="sb-section">Fontes de dados</div><div class="sb-label">Tiradentes · URL</div>',
                 unsafe_allow_html=True)
@@ -647,17 +667,8 @@ with st.sidebar:
     df_curva_raw  = prep_curva(load_data(url_curva))
     df_curva2_raw = prep_curva(load_data(url_curva2))
 
-
-# ── TABS ──────────────────────────────────────────────────────────────────────
 tab1, tab2 = st.tabs(["Tiradentes", "Feriado Maio"])
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FUNÇÃO REUTILIZÁVEL — CURVA DE FERIADO + EDITOR DE PRICING
-# Parâmetros:
-#   df_raw      — DataFrame já preparado com prep_curva()
-#   tab_key     — prefixo único para todas as chaves de session_state (ex: "t2","t3")
-#   titulo      — título exibido no header
-# ══════════════════════════════════════════════════════════════════════════════
 def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: list = None):
     agora_t = datetime.now().strftime("%d/%m/%Y %H:%M")
     st.markdown(f"""
@@ -677,14 +688,11 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
 
     df_c = df_raw.copy()
 
-    # ── KPIs ──────────────────────────────────────────────────────────────────
     lf_med  = df_c["lf_atual"].mean()
     lf_ref  = df_c["lf_pascoa_2026"].mean()
     rat_med = df_c["ratio"].mean()
     acima   = int((df_c["ratio"] >= 1).sum())
     abaixo  = int((df_c["ratio"] < 1).sum())
-    rat_cls = "c-grn" if rat_med >= 1 else "c-red"
-    rat_dot = "#2d6a4f" if rat_med >= 1 else "#c0392b"
 
     ratio_cls_val = "positive" if rat_med >= 1 else "negative"
     st.markdown(f"""
@@ -702,11 +710,19 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Gráfico ────────────────────────────────────────────────────────────────
-    df_chart = (df_c.groupby("sentido")
-                .agg(lf_atual=("lf_atual","mean"), lf_ref=("lf_pascoa_2026","mean"),
-                     ratio=("ratio","mean"), occ=("occ_atual","mean"))
-                .reset_index().sort_values("occ", ascending=False).head(12))
+    df_chart = (
+        df_c.groupby("sentido")
+        .agg(
+            lf_atual=("lf_atual", "mean"),
+            lf_ref=("lf_pascoa_2026", "mean"),
+            ratio=("ratio", "mean"),
+            occ=("occ_atual", "mean"),
+        )
+        .reset_index()
+        .sort_values("occ", ascending=False)
+        .head(12)
+    )
+
     max_lf = max(df_chart["lf_atual"].max(), df_chart["lf_ref"].max(), 0.01)
     chart_rows = ""
     for _, r in df_chart.iterrows():
@@ -731,6 +747,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
             f'<div style="width:44px;text-align:right;flex-shrink:0">'
             f'<span class="{rat_c}" style="font-size:.76rem">{rat:.2f}x</span></div></div>'
         )
+
     st.markdown(f"""
     <div class="chart-section">
       <div class="section-label">Análise comparativa</div>
@@ -747,27 +764,31 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Filtros ────────────────────────────────────────────────────────────────
     col_f1, col_f2, col_f3 = st.columns(3)
     with col_f1:
         datas_c     = sorted(df_c["data"].dt.date.unique())
-        datas_c_sel = st.multiselect("Data", options=datas_c, default=datas_c,
-                                     format_func=lambda d: d.strftime("%d/%m"),
-                                     key=f"{tab_key}_datas")
+        datas_c_sel = st.multiselect(
+            "Data",
+            options=datas_c,
+            default=datas_c,
+            format_func=lambda d: d.strftime("%d/%m"),
+            key=f"{tab_key}_datas"
+        )
     with col_f2:
         turnos_c   = sorted(df_c["turno"].dropna().unique())
-        turnos_sel = st.multiselect("Turno", options=turnos_c, default=turnos_c,
-                                    key=f"{tab_key}_turnos")
+        turnos_sel = st.multiselect("Turno", options=turnos_c, default=turnos_c, key=f"{tab_key}_turnos")
     with col_f3:
         rota_c = st.text_input("Buscar rota", placeholder="ex: BHZ-RIO", key=f"{tab_key}_rota")
 
     df_cv = df_c.copy()
-    if datas_c_sel: df_cv = df_cv[df_cv["data"].dt.date.isin(datas_c_sel)]
-    if turnos_sel:  df_cv = df_cv[df_cv["turno"].isin(turnos_sel)]
-    if rota_c:      df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
-    df_cv = df_cv.sort_values(["occ_atual","ratio"], ascending=[False, False]).reset_index(drop=True)
+    if datas_c_sel:
+        df_cv = df_cv[df_cv["data"].dt.date.isin(datas_c_sel)]
+    if turnos_sel:
+        df_cv = df_cv[df_cv["turno"].isin(turnos_sel)]
+    if rota_c:
+        df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
+    df_cv = df_cv.sort_values(["occ_atual", "ratio"], ascending=[False, False]).reset_index(drop=True)
 
-    # ── Filtro de já enviados ──────────────────────────────────────────────────
     key_enviadas = f"{tab_key}_linhas_enviadas"
     if key_enviadas not in st.session_state:
         st.session_state[key_enviadas] = set()
@@ -794,12 +815,11 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
                 st.session_state[key_enviadas] = set()
                 st.rerun()
 
-    # ── Editor de Pricing ──────────────────────────────────────────────────────
     st.markdown("""
     <div class="editor-header">
       <div>
         <div class="editor-title">Editor de Pricing</div>
-        <div class="editor-sub">Preencha <strong>Preço novo</strong> nas linhas que deseja alterar — o mult é calculado automaticamente sobre o preço com flutuação. Desmarque <strong>Incluir</strong> para ignorar uma linha.</div>
+        <div class="editor-sub">Preencha <strong>Preço novo</strong> nas linhas que deseja alterar — o mult é calculado automaticamente sobre o <strong>Preço mult. flut.</strong> e, se não houver, usa <strong>Preço c/ sazon.</strong>. Desmarque <strong>Incluir</strong> para ignorar uma linha.</div>
       </div>
     </div>
     """, unsafe_allow_html=True)
@@ -808,28 +828,37 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
     if key_version not in st.session_state:
         st.session_state[key_version] = 0
 
-    cols_editor    = ["data","turno","rota_principal","sentido","antecedencia",
-                      "occ_atual","pax","vagas_restantes","lf_atual","lf_pascoa_2026","ratio",
-                      "tkm_atual","tkm_comp","price_cc","preco_com_sazonalidade","preco_staff","preco_com_flutuacao",
-                      "mult_final","mult_flutuacao"]
+    cols_editor = [
+        "data","turno","rota_principal","sentido","antecedencia",
+        "occ_atual","pax","vagas_restantes","lf_atual","lf_pascoa_2026","ratio",
+        "tkm_atual","tkm_comp","price_cc","preco_com_sazonalidade","preco_staff",
+        "preco_com_flutuacao","mult_final","mult_flutuacao"
+    ]
     if extra_cols:
         cols_editor += [c for c in extra_cols if c not in cols_editor]
+
     cols_presentes = [c for c in cols_editor if c in df_cv_editor.columns]
     df_editor      = df_cv_editor[cols_presentes].copy()
 
     df_editor["data_fmt"] = pd.to_datetime(df_editor["data"]).dt.strftime("%d/%m/%Y")
-    if "occ_atual"      in df_editor.columns: df_editor["occ_pct"]  = (df_editor["occ_atual"]      * 100).round(1).astype(str) + "%"
-    if "lf_atual"       in df_editor.columns: df_editor["lf_a_fmt"] = (df_editor["lf_atual"]       * 100).round(1).astype(str) + "%"
-    if "lf_pascoa_2026" in df_editor.columns: df_editor["lf_r_fmt"] = (df_editor["lf_pascoa_2026"] * 100).round(1).astype(str) + "%"
-    if "ratio"          in df_editor.columns: df_editor["ratio_fmt"]= df_editor["ratio"].round(3).astype(str) + "x"
+    if "occ_atual" in df_editor.columns:
+        df_editor["occ_pct"] = (df_editor["occ_atual"] * 100).round(1).astype(str) + "%"
+    if "lf_atual" in df_editor.columns:
+        df_editor["lf_a_fmt"] = (df_editor["lf_atual"] * 100).round(1).astype(str) + "%"
+    if "lf_pascoa_2026" in df_editor.columns:
+        df_editor["lf_r_fmt"] = (df_editor["lf_pascoa_2026"] * 100).round(1).astype(str) + "%"
+    if "ratio" in df_editor.columns:
+        df_editor["ratio_fmt"] = df_editor["ratio"].round(3).astype(str) + "x"
 
     df_editor["incluir"]       = True
     df_editor["✏️ Preço novo"] = None
 
-    show_cols = ["incluir","data_fmt","turno","rota_principal","sentido","antecedencia",
-                 "occ_pct","pax","vagas_restantes","lf_a_fmt","lf_r_fmt","ratio_fmt",
-                 "tkm_atual","tkm_comp","price_cc","preco_com_sazonalidade","preco_staff","preco_com_flutuacao",
-                 "mult_final","mult_flutuacao"]
+    show_cols = [
+        "incluir","data_fmt","turno","rota_principal","sentido","antecedencia",
+        "occ_pct","pax","vagas_restantes","lf_a_fmt","lf_r_fmt","ratio_fmt",
+        "tkm_atual","tkm_comp","price_cc","preco_com_sazonalidade","preco_staff",
+        "preco_com_flutuacao","mult_final","mult_flutuacao"
+    ]
     if extra_cols:
         show_cols += [c for c in extra_cols if c not in show_cols]
     show_cols += ["✏️ Preço novo"]
@@ -837,61 +866,76 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
     df_show    = df_editor[show_cols].copy()
 
     col_config = {
-        "incluir":             st.column_config.CheckboxColumn("Incluir", default=True),
-        "data_fmt":            st.column_config.TextColumn("Data",             disabled=True),
-        "turno":               st.column_config.TextColumn("Turno",            disabled=True),
-        "rota_principal":      st.column_config.TextColumn("Rota principal",   disabled=True),
-        "sentido":             st.column_config.TextColumn("Sentido",          disabled=True),
-        "antecedencia":        st.column_config.NumberColumn("Antec.",         disabled=True),
-        "occ_pct":             st.column_config.TextColumn("Occ",              disabled=True),
-        "pax":                 st.column_config.NumberColumn("PAX",            disabled=True),
-        "vagas_restantes":     st.column_config.NumberColumn("Vagas rest.",    disabled=True),
-        "lf_a_fmt":            st.column_config.TextColumn("LF Atual",         disabled=True),
-        "lf_r_fmt":            st.column_config.TextColumn("LF Ref",           disabled=True),
-        "ratio_fmt":           st.column_config.TextColumn("Ratio",            disabled=True),
-        "tkm_atual":           st.column_config.NumberColumn("TKM Atual",      disabled=True, format="R$ %.0f"),
-        "tkm_comp":            st.column_config.NumberColumn("TKM Comp",       disabled=True, format="R$ %.0f"),
-        "price_cc":            st.column_config.NumberColumn("Price CC",       disabled=True, format="R$ %.0f"),
+        "incluir":                st.column_config.CheckboxColumn("Incluir", default=True),
+        "data_fmt":               st.column_config.TextColumn("Data", disabled=True),
+        "turno":                  st.column_config.TextColumn("Turno", disabled=True),
+        "rota_principal":         st.column_config.TextColumn("Rota principal", disabled=True),
+        "sentido":                st.column_config.TextColumn("Sentido", disabled=True),
+        "antecedencia":           st.column_config.NumberColumn("Antec.", disabled=True),
+        "occ_pct":                st.column_config.TextColumn("Occ", disabled=True),
+        "pax":                    st.column_config.NumberColumn("PAX", disabled=True),
+        "vagas_restantes":        st.column_config.NumberColumn("Vagas rest.", disabled=True),
+        "lf_a_fmt":               st.column_config.TextColumn("LF Atual", disabled=True),
+        "lf_r_fmt":               st.column_config.TextColumn("LF Ref", disabled=True),
+        "ratio_fmt":              st.column_config.TextColumn("Ratio", disabled=True),
+        "tkm_atual":              st.column_config.NumberColumn("TKM Atual", disabled=True, format="R$ %.0f"),
+        "tkm_comp":               st.column_config.NumberColumn("TKM Comp", disabled=True, format="R$ %.0f"),
+        "price_cc":               st.column_config.NumberColumn("Price CC", disabled=True, format="R$ %.0f"),
         "preco_com_sazonalidade": st.column_config.NumberColumn("Preço c/ sazon.", disabled=True, format="R$ %.2f"),
-        "preco_staff":         st.column_config.NumberColumn("Preço Staff",    disabled=True, format="R$ %.2f"),
-        "preco_com_flutuacao": st.column_config.NumberColumn("Preço c/ flut.", disabled=True, format="R$ %.2f"),
-        "mult_final":          st.column_config.NumberColumn("Mult Final",     disabled=True, format="%.3fx"),
-        "mult_flutuacao":      st.column_config.NumberColumn("Mult Flut.",     disabled=True, format="%.3fx"),
-        "preco_mult_flutuacao":st.column_config.NumberColumn("Preço mult. flut.", disabled=True, format="R$ %.2f"),
+        "preco_staff":            st.column_config.NumberColumn("Preço Staff", disabled=True, format="R$ %.2f"),
+        "preco_com_flutuacao":    st.column_config.NumberColumn("Preço c/ flut.", disabled=True, format="R$ %.2f"),
+        "mult_final":             st.column_config.NumberColumn("Mult Final", disabled=True, format="%.3fx"),
+        "mult_flutuacao":         st.column_config.NumberColumn("Mult Flut.", disabled=True, format="%.3fx"),
+        "preco_mult_flutuacao":   st.column_config.NumberColumn("Preço mult. flut.", disabled=True, format="R$ %.2f"),
         "✏️ Preço novo": st.column_config.NumberColumn(
-            "Preco novo", min_value=0.0, format="R$ %.2f",
-            help="Digite o preço desejado — mult = preco_novo / preco_com_flutuacao",
+            "Preco novo",
+            min_value=0.0,
+            format="R$ %.2f",
+            help="Digite o preço desejado — mult = preco_novo / preco_mult_flutuacao; se não houver, usa preco_com_sazonalidade",
         ),
     }
 
     edited = st.data_editor(
-        df_show, use_container_width=True, hide_index=True,
-        column_config=col_config, num_rows="fixed",
+        df_show,
+        use_container_width=True,
+        hide_index=True,
+        column_config=col_config,
+        num_rows="fixed",
         key=f"{tab_key}_editor_{st.session_state[key_version]}",
     )
 
-    # ── Preview do acionamento ─────────────────────────────────────────────────
     df_editado  = edited[edited["✏️ Preço novo"].notna() & edited["incluir"].fillna(True)].copy()
     n_excluidas = int((~edited["incluir"].fillna(True)).sum())
 
     if not df_editado.empty:
-        df_editado["_preco_prat"]     = df_cv_editor.loc[df_editado.index, "preco_com_sazonalidade"].values
-        df_editado["_preco_com_flut"] = df_cv_editor.loc[df_editado.index, "preco_com_flutuacao"].values \
-                                        if "preco_com_flutuacao" in df_cv_editor.columns else None
-        base_vals = pd.Series(df_editado["_preco_com_flut"]).fillna(
-                    pd.Series(df_editado["_preco_prat"])).values
+        df_editado["_preco_sazon"] = df_cv_editor.loc[df_editado.index, "preco_com_sazonalidade"].values
+
+        df_editado["_preco_mult_flut"] = (
+            df_cv_editor.loc[df_editado.index, "preco_mult_flutuacao"].values
+            if "preco_mult_flutuacao" in df_cv_editor.columns
+            else None
+        )
+
+        base_vals = pd.Series(df_editado["_preco_mult_flut"]).fillna(
+            pd.Series(df_editado["_preco_sazon"])
+        ).values
+
         df_editado["_base_calc"] = base_vals
-        df_editado["mult_novo"]  = (df_editado["✏️ Preço novo"] / df_editado["_base_calc"]).round(6)
+
+        df_editado["mult_novo"] = (
+            df_editado["✏️ Preço novo"] / df_editado["_base_calc"]
+        ).round(6)
 
         df_acionamento = pd.DataFrame({
-            "data":                pd.to_datetime(df_editado["data_fmt"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d"),
-            "turno":               df_editado["turno"].values,
-            "rota_principal":      df_editado["rota_principal"].values,
-            "sentido":             df_editado["sentido"].values,
-            "preco_com_sazonalidade": df_editado["_preco_prat"].values,
-            "preco_com_flutuacao": df_editado["_base_calc"].values,
-            "preco_novo":          df_editado["✏️ Preço novo"].values,
-            "mult":                df_editado["mult_novo"].values,
+            "data": pd.to_datetime(df_editado["data_fmt"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d"),
+            "turno": df_editado["turno"].values,
+            "rota_principal": df_editado["rota_principal"].values,
+            "sentido": df_editado["sentido"].values,
+            "preco_com_sazonalidade": df_editado["_preco_sazon"].values,
+            "preco_mult_flutuacao": df_editado["_preco_mult_flut"].values,
+            "base_calculo_mult": df_editado["_base_calc"].values,
+            "preco_novo": df_editado["✏️ Preço novo"].values,
+            "mult": df_editado["mult_novo"].values,
         })
 
         n_edit   = len(df_acionamento)
@@ -921,8 +965,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
                 st.rerun()
 
         with col_b2:
-            if st.button("Enviar pro GitHub", use_container_width=True,
-                         type="primary", key=f"{tab_key}_push"):
+            if st.button("Enviar pro GitHub", use_container_width=True, type="primary", key=f"{tab_key}_push"):
                 gh_token = st.session_state.get(f"{tab_key}_gh_token", "")
                 if not gh_token:
                     st.warning("Cole seu token no campo abaixo.")
@@ -933,9 +976,11 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
                     url_gh = f"https://api.github.com/repos/{repo}/contents/{path}"
                     hdrs   = {"Authorization": f"token {gh_token}", "Accept": "application/vnd.github.v3+json"}
                     enc    = base64.b64encode(csv_bytes).decode("utf-8")
-                    r_gh   = requests.put(url_gh, headers=hdrs,
-                                          data=json.dumps({"message": f"pricing: {path}",
-                                                           "content": enc, "branch": branch}))
+                    r_gh   = requests.put(
+                        url_gh,
+                        headers=hdrs,
+                        data=json.dumps({"message": f"pricing: {path}", "content": enc, "branch": branch})
+                    )
                     if r_gh.status_code in (200, 201):
                         for _, r in df_acionamento.iterrows():
                             st.session_state[key_enviadas].add(f"{r['data']}|{r['turno']}|{r['sentido']}")
@@ -952,8 +997,12 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
                 st.rerun()
 
         with st.expander("Token GitHub"):
-            st.text_input("Token", type="password", key=f"{tab_key}_gh_token",
-                          help="Necessário só para 'Enviar pro GitHub'. Fica apenas na sessão.")
+            st.text_input(
+                "Token",
+                type="password",
+                key=f"{tab_key}_gh_token",
+                help="Necessário só para 'Enviar pro GitHub'. Fica apenas na sessão."
+            )
     else:
         st.markdown("""
         <div style="padding:10px 16px;background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;margin-top:.8rem">
@@ -970,19 +1019,16 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
     st.markdown(f"""
     <div class="footer">
       <span class="ftxt"><strong style="color:var(--txt)">{len(df_cv_editor)}</strong> linhas no editor · {len(df_cv)} total · {n_ocultas} já enviadas ocultas</span>
-      <span class="ftxt">mult = preço novo / preço c/ flut. · &gt; 1 aumento · &lt; 1 redução</span>
+      <span class="ftxt">mult = preço novo / preço mult. flut. · fallback: preço c/ sazon. · &gt; 1 aumento · &lt; 1 redução</span>
     </div>""", unsafe_allow_html=True)
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — CURVA DE FERIADO
-# ══════════════════════════════════════════════════════════════════════════════
 with tab1:
     render_curva(df_curva_raw, tab_key="t1", titulo="Tiradentes")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 3 — CURVA DE FERIADO 2
-# ══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    render_curva(df_curva2_raw, tab_key="t2", titulo="Feriado Maio",
-                 extra_cols=["preco_mult_flutuacao"])
+    render_curva(
+        df_curva2_raw,
+        tab_key="t2",
+        titulo="Feriado Maio",
+        extra_cols=["preco_mult_flutuacao"]
+    )
