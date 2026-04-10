@@ -1,4 +1,4 @@
-data,turno,rota_principal,sentido,antecedencia,dia_da_semana,pax,capacidade_atual,occ_atual,vagas_restantes,lf_pascoa_2026,lf_atual,ratio,tkm_atual,tkm_comp,preco_base,preco_est_draft,preco_est_novo,preco_com_sazonalidade,preco_com_flutuacao,mult_final,mult_flutuacao,price_cc,origem_match,qtd_dias_no_idx
+data,turno,rota_principal,sentido,antecedencia,dia_da_semana,pax,capacidade_atual,occ_atual,vagas_restantes,lf_pascoa_2026,lf_atual,ratio,tkm_atual,tkm_comp,preco_base,preco_est_draft,preco_est_novo,preco_com_sazonalidade,preco_mult_flutuacao,mult_final,mult_flutuacao,price_cc,origem_match,qtd_dias_no_idx
 2026-04-17,MANHA,BAT-SAO,BAT-SAO,7,6,22,45,0.49,23,0.252,0.3976,1.578,85.08,93.92,116.9,116.9,160.9,160.9,202.47673094996483,1.371,1.2584010624609374,199.95,com_turno,1.0
 2026-04-17,MANHA,BHZ-DTI,BHZ-DTI,7,6,20,46,0.43,26,0.0,0.3646,0.0,63.3,,94.9,94.9,104.9,104.9,121.15949999999998,1.105,1.1549999999999998,177.84,sem_match,
 2026-04-17,MANHA,BHZ-RIO,BHZ-RIO,7,6,39,60,0.65,21,0.5376,0.6169,1.1476,137.98,216.44,95.9,110.9,170.9,170.9,311.038,1.779,1.82,283.308,com_turno,1.0
