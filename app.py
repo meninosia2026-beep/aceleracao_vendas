@@ -469,6 +469,7 @@ hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1.2rem 0
 </style>
 """, unsafe_allow_html=True)
 
+# ── CONSTANTES ────────────────────────────────────────────────────────────────
 SINAL_ORDER = {
     "🚨 ABAIXO FORECAST + DESACEL - URGENTE": 1,
     "⚠️ ABAIXO FORECAST - PROXIMA VIAGEM":    2,
@@ -488,6 +489,7 @@ SINAL_META = {
     "⚪ NORMAL":                               {"short":"Normal",       "badge":"",     "dot":"#b8b8b0"},
 }
 
+# ── LOAD ──────────────────────────────────────────────────────────────────────
 @st.cache_data(ttl=300)
 def load_data(url: str) -> pd.DataFrame:
     try:
@@ -534,6 +536,7 @@ def prep_curva(df: pd.DataFrame) -> pd.DataFrame:
         df["data"] = pd.to_datetime(df["data"])
     return df
 
+# ── SCORE ─────────────────────────────────────────────────────────────────────
 def calcular_score(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     fc        = df["pct_atingimento_forecast"].fillna(0).clip(0, 150) / 150
@@ -544,6 +547,7 @@ def calcular_score(df: pd.DataFrame) -> pd.DataFrame:
     df["_score"] = (0.45 * occ) + (0.35 * fc) + (0.20 * acel_norm)
     return df
 
+# ── HELPERS HTML ──────────────────────────────────────────────────────────────
 def sinal_tag(sinal):
     m = SINAL_META.get(sinal, SINAL_META["⚪ NORMAL"])
     if m["badge"]:
@@ -652,6 +656,7 @@ def turno_badge(t):
             f'font-size:.61rem;font-weight:600;background:{cor}18;color:{cor};'
             f'border:1px solid {cor}33">{t}</span>')
 
+# ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown('<div class="sb-section">Fontes de dados</div><div class="sb-label">Tiradentes · URL</div>',
                 unsafe_allow_html=True)
@@ -667,6 +672,7 @@ with st.sidebar:
     df_curva_raw  = prep_curva(load_data(url_curva))
     df_curva2_raw = prep_curva(load_data(url_curva2))
 
+# ── TABS ──────────────────────────────────────────────────────────────────────
 tab1, tab2 = st.tabs(["Tiradentes", "Feriado Maio"])
 
 def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: list = None):
@@ -688,6 +694,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
 
     df_c = df_raw.copy()
 
+    # ── KPIs ──────────────────────────────────────────────────────────────────
     lf_med  = df_c["lf_atual"].mean()
     lf_ref  = df_c["lf_pascoa_2026"].mean()
     rat_med = df_c["ratio"].mean()
@@ -710,6 +717,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Gráfico ────────────────────────────────────────────────────────────────
     df_chart = (
         df_c.groupby("sentido")
         .agg(
@@ -764,6 +772,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Filtros ────────────────────────────────────────────────────────────────
     col_f1, col_f2, col_f3 = st.columns(3)
     with col_f1:
         datas_c     = sorted(df_c["data"].dt.date.unique())
@@ -789,6 +798,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
         df_cv = df_cv[df_cv["sentido"].str.upper().str.contains(rota_c.upper(), na=False)]
     df_cv = df_cv.sort_values(["occ_atual", "ratio"], ascending=[False, False]).reset_index(drop=True)
 
+    # ── Filtro de já enviados ──────────────────────────────────────────────────
     key_enviadas = f"{tab_key}_linhas_enviadas"
     if key_enviadas not in st.session_state:
         st.session_state[key_enviadas] = set()
@@ -815,6 +825,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
                 st.session_state[key_enviadas] = set()
                 st.rerun()
 
+    # ── Editor de Pricing ──────────────────────────────────────────────────────
     st.markdown("""
     <div class="editor-header">
       <div>
@@ -904,6 +915,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
         key=f"{tab_key}_editor_{st.session_state[key_version]}",
     )
 
+    # ── Preview do acionamento ─────────────────────────────────────────────────
     df_editado  = edited[edited["✏️ Preço novo"].notna() & edited["incluir"].fillna(True)].copy()
     n_excluidas = int((~edited["incluir"].fillna(True)).sum())
 
@@ -1022,9 +1034,20 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: li
       <span class="ftxt">mult = preço novo / preço mult. flut. · fallback: preço c/ sazon. · &gt; 1 aumento · &lt; 1 redução</span>
     </div>""", unsafe_allow_html=True)
 
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 1 — TIRADENTES
+# ══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    render_curva(df_curva_raw, tab_key="t1", titulo="Tiradentes")
+    render_curva(
+        df_curva_raw,
+        tab_key="t1",
+        titulo="Tiradentes",
+        extra_cols=["preco_mult_flutuacao"]
+    )
 
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 2 — FERIADO MAIO
+# ══════════════════════════════════════════════════════════════════════════════
 with tab2:
     render_curva(
         df_curva2_raw,
