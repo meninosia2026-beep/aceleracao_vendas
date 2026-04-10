@@ -520,7 +520,7 @@ def prep_curva(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     float_cols = ["occ_atual","lf_pascoa_2026","lf_atual","ratio","tkm_comp",
                   "preco_base","preco_est_draft","preco_com_sazonalidade","mult_final","price_cc",
-                  "tkm_atual","mult_flutuacao","preco_com_flutuacao","preco_staff"]
+                  "tkm_atual","mult_flutuacao","preco_com_flutuacao","preco_staff","preco_mult_flutuacao"]
     for c in float_cols:
         if c in df.columns: df[c] = pd.to_numeric(df[c].replace("null", None), errors="coerce")
     for c in ["pax","capacidade_atual","vagas_restantes","antecedencia"]:
@@ -658,7 +658,7 @@ tab1, tab2 = st.tabs(["Tiradentes", "Feriado Maio"])
 #   tab_key     — prefixo único para todas as chaves de session_state (ex: "t2","t3")
 #   titulo      — título exibido no header
 # ══════════════════════════════════════════════════════════════════════════════
-def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
+def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str, extra_cols: list = None):
     agora_t = datetime.now().strftime("%d/%m/%Y %H:%M")
     st.markdown(f"""
     <div class="pg-header">
@@ -812,6 +812,8 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
                       "occ_atual","pax","vagas_restantes","lf_atual","lf_pascoa_2026","ratio",
                       "tkm_atual","tkm_comp","price_cc","preco_com_sazonalidade","preco_staff","preco_com_flutuacao",
                       "mult_final","mult_flutuacao"]
+    if extra_cols:
+        cols_editor += [c for c in extra_cols if c not in cols_editor]
     cols_presentes = [c for c in cols_editor if c in df_cv_editor.columns]
     df_editor      = df_cv_editor[cols_presentes].copy()
 
@@ -827,7 +829,10 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
     show_cols = ["incluir","data_fmt","turno","rota_principal","sentido","antecedencia",
                  "occ_pct","pax","vagas_restantes","lf_a_fmt","lf_r_fmt","ratio_fmt",
                  "tkm_atual","tkm_comp","price_cc","preco_com_sazonalidade","preco_staff","preco_com_flutuacao",
-                 "mult_final","mult_flutuacao","✏️ Preço novo"]
+                 "mult_final","mult_flutuacao"]
+    if extra_cols:
+        show_cols += [c for c in extra_cols if c not in show_cols]
+    show_cols += ["✏️ Preço novo"]
     show_cols  = [c for c in show_cols if c in df_editor.columns]
     df_show    = df_editor[show_cols].copy()
 
@@ -852,6 +857,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
         "preco_com_flutuacao": st.column_config.NumberColumn("Preço c/ flut.", disabled=True, format="R$ %.2f"),
         "mult_final":          st.column_config.NumberColumn("Mult Final",     disabled=True, format="%.3fx"),
         "mult_flutuacao":      st.column_config.NumberColumn("Mult Flut.",     disabled=True, format="%.3fx"),
+        "preco_mult_flutuacao":st.column_config.NumberColumn("Preço mult. flut.", disabled=True, format="R$ %.2f"),
         "✏️ Preço novo": st.column_config.NumberColumn(
             "Preco novo", min_value=0.0, format="R$ %.2f",
             help="Digite o preço desejado — mult = preco_novo / preco_com_flutuacao",
@@ -978,4 +984,5 @@ with tab1:
 # TAB 3 — CURVA DE FERIADO 2
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    render_curva(df_curva2_raw, tab_key="t2", titulo="Feriado Maio")
+    render_curva(df_curva2_raw, tab_key="t2", titulo="Feriado Maio",
+                 extra_cols=["preco_mult_flutuacao"])
