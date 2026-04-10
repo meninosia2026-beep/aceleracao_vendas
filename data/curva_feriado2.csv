@@ -1,1 +1,1 @@
-data,turno,rota_principal,sentido,antecedencia,dia_da_semana,pax,capacidade_atual,occ_atual,vagas_restantes,lf_pascoa_2026,lf_atual,ratio,tkm_comp,preco_base,preco_est_draft,preco_est_novo,preco_praticado,mult_final,mult_flutuacao,price_cc,origem_match,qtd_dias_no_idx
+data,turno,rota_principal,sentido,antecedencia,dia_da_semana,pax,capacidade_atual,occ_atual,vagas_restantes,lf_pascoa_2026,lf_atual,ratio,tkm_comp,preco_base,preco_est_draft,preco_est_novo,preco_com_sazonalidade,preco_com_flutuacao,mult_final,mult_flutuacao,price_cc,origem_match,qtd_dias_no_idx
