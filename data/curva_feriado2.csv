@@ -1,4 +1,4 @@
-data,turno,rota_principal,sentido,antecedencia,dia_da_semana,pax,capacidade_atual,occ_atual,vagas_restantes,lf_pascoa_2026,lf_atual,ratio,tkm_comp,preco_base,preco_est_draft,preco_est_novo,preco_com_sazonalidade,preco_final,mult_final,mult_flutuacao,price_cc,origem_match,qtd_dias_no_idx
+data,turno,rota_principal,sentido,antecedencia,dia_da_semana,pax,capacidade_atual,occ_atual,vagas_restantes,lf_pascoa_2026,lf_atual,ratio,tkm_comp,preco_base,preco_est_draft,preco_est_novo,preco_com_sazonalidade,preco_mult_flutuacao,mult_final,mult_flutuacao,price_cc,origem_match,qtd_dias_no_idx
 2026-04-30,MADRUGADA,CMP-SAO,CMP-SAO,20,5,1.0,46,0.02,45,0.0583,0.0148,0.2542,,25.9,28.9,,28.9,,1.103,,55.531,com_turno,1.0
 2026-04-30,MADRUGADA,RAO-SAO,RAO-SAO,20,5,13.0,99,0.13,86,0.0369,0.1232,3.3388,,72.9,79.9,,79.9,,1.095,,153.9,com_turno,1.0
 2026-04-30,MADRUGADA,RAO-SAO,SAO-RAO,20,5,4.0,46,0.09,42,0.1046,0.0839,0.802,,68.9,88.9,,88.9,,1.282,,,com_turno,1.0
