@@ -9,130 +9,463 @@ from datetime import datetime
 GITHUB_RAW_CURVA   = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado.csv"
 GITHUB_RAW_CURVA2  = "https://raw.githubusercontent.com/meninosia2026-beep/aceleracao_vendas/main/data/curva_feriado2.csv"
 
-st.set_page_config(page_title="Farol PAX", page_icon="🚦", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Pricing · Curva de Feriados", page_icon=None, layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
 :root {
-  --bg:#fff;--bg2:#f7f6f3;--bg3:#eeede9;--bdr:#e2e1dc;--bdr2:#d0cfc9;
-  --txt:#1a1a18;--txt2:#3d3d38;--muted:#8c8c84;--muted2:#b8b8b0;
-  --accent:#f11075;--green:#2d6a4f;--green-lt:#d8f3dc;
-  --red:#c0392b;--red-lt:#fde8e8;--orange:#d35400;--blue:#2c3e7a;
+  --bg:       #f9f8f6;
+  --bg2:      #f2f1ee;
+  --bg3:      #eae9e5;
+  --bdr:      #e0deda;
+  --bdr2:     #cccac5;
+  --txt:      #171614;
+  --txt2:     #3a3935;
+  --muted:    #7a7870;
+  --muted2:   #b0aea8;
+  --ink:      #1a1a1a;
+  --accent:   #1a1a1a;
+  --green:    #1e5c3a;
+  --green-lt: #e8f5ee;
+  --red:      #8b1a1a;
+  --red-lt:   #fdf0f0;
+  --amber:    #7a4a0a;
+  --amber-lt: #fdf5e8;
+  --blue:     #1a2e5c;
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body,[data-testid="stAppViewContainer"],[data-testid="stAppViewBlockContainer"],
-section[data-testid="stMain"]>div{background:var(--bg)!important;color:var(--txt)!important;font-family:'Inter',sans-serif!important;}
-[data-testid="stSidebar"]{background:var(--bg2)!important;border-right:1px solid var(--bdr)!important;}
-[data-testid="stSidebar"] *{color:var(--txt)!important;font-family:'Inter',sans-serif!important;}
-.block-container{padding:2rem 2.5rem!important;max-width:100%!important;}
-hr{border:none;border-top:1px solid var(--bdr)!important;margin:1rem 0;}
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:var(--bg2);}
-::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px;}
-[data-testid="stTextInput"] input{background:var(--bg)!important;border:1px solid var(--bdr2)!important;border-radius:4px!important;color:var(--txt)!important;font-family:'Inter',sans-serif!important;font-size:.83rem!important;}
-[data-testid="stTextInput"] input:focus{border-color:var(--accent)!important;outline:none!important;box-shadow:none!important;}
-[data-testid="stButton"]>button{background:var(--bg)!important;border:1px solid var(--bdr2)!important;color:var(--muted)!important;font-family:'Inter',sans-serif!important;font-size:.75rem!important;font-weight:500!important;border-radius:20px!important;padding:4px 14px!important;line-height:1.4!important;transition:all .12s!important;white-space:nowrap!important;}
-[data-testid="stButton"]>button:hover{border-color:var(--accent)!important;color:var(--accent)!important;background:rgba(241,16,117,.04)!important;}
-[data-testid="stButton"]>button[kind="primary"]{background:rgba(241,16,117,.08)!important;color:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important;}
-[data-testid="stSidebar"] [data-testid="stButton"]>button{border-radius:4px!important;color:var(--txt2)!important;}
-[data-testid="stSidebar"] [data-testid="stButton"]>button:hover{border-color:var(--accent)!important;color:var(--accent)!important;background:var(--bg)!important;}
-[data-testid="stMultiSelect"] [data-baseweb="select"]>div{background:var(--bg)!important;border:1px solid var(--bdr2)!important;border-radius:4px!important;min-height:36px!important;box-shadow:none!important;}
-[data-testid="stMultiSelect"] [data-baseweb="select"]>div:focus-within{border-color:var(--accent)!important;box-shadow:none!important;}
-[data-baseweb="tag"]{background:var(--bg3)!important;border:1px solid var(--bdr2)!important;border-radius:3px!important;padding:1px 6px!important;height:22px!important;}
-[data-baseweb="tag"] span:first-child{color:var(--txt2)!important;font-size:.72rem!important;font-weight:600!important;}
-[data-baseweb="popover"] [data-baseweb="menu"]{background:var(--bg)!important;border:1px solid var(--bdr2)!important;border-radius:4px!important;box-shadow:0 4px 16px rgba(0,0,0,.08)!important;}
-[data-baseweb="option"]{background:var(--bg)!important;font-size:.78rem!important;color:var(--txt2)!important;padding:7px 12px!important;}
-[data-baseweb="option"]:hover,[aria-selected="true"][data-baseweb="option"]{background:var(--bg2)!important;}
-[data-testid="stSlider"] [role="slider"]{background:var(--accent)!important;border:2px solid #fff!important;box-shadow:0 1px 6px rgba(241,16,117,.25)!important;width:14px!important;height:14px!important;}
-[data-testid="stSlider"] [data-testid="stTickBarMin"],[data-testid="stSlider"] [data-testid="stTickBarMax"]{font-size:.7rem!important;color:var(--muted)!important;}
-[data-testid="stCheckbox"] label{font-size:.82rem!important;color:var(--txt2)!important;font-weight:500!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;white-space:nowrap!important;}
-[data-testid="stCheckbox"] [data-baseweb="checkbox"] div{border-color:var(--bdr2)!important;border-radius:3px!important;background:var(--bg)!important;width:16px!important;height:16px!important;flex-shrink:0!important;}
-[data-testid="stCheckbox"] [aria-checked="true"] div{background:var(--accent)!important;border-color:var(--accent)!important;}
-[data-testid="stTabs"] [data-baseweb="tab-list"]{background:transparent!important;border-bottom:1px solid var(--bdr)!important;gap:0!important;}
-[data-testid="stTabs"] [data-baseweb="tab"]{background:transparent!important;color:var(--muted)!important;font-family:'Inter',sans-serif!important;font-size:.85rem!important;font-weight:500!important;border:none!important;border-bottom:2px solid transparent!important;padding:8px 18px 10px!important;margin-bottom:-1px!important;}
-[data-testid="stTabs"] [data-baseweb="tab"]:hover{color:var(--txt)!important;}
-[data-testid="stTabs"] [aria-selected="true"][data-baseweb="tab"]{color:var(--txt)!important;border-bottom-color:var(--accent)!important;font-weight:600!important;}
-[data-testid="stTabs"] [data-baseweb="tab-highlight"]{display:none!important;}
-[data-testid="stTabs"] [data-baseweb="tab-border"]{display:none!important;}
-.pg-header{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:1.4rem;margin-bottom:1.8rem;border-bottom:1px solid var(--bdr);}
-.pg-title{font-family:'Libre Baskerville',serif;font-size:2rem;font-weight:700;letter-spacing:-.5px;color:var(--txt);line-height:1.1;margin-bottom:5px;}
-.pg-sub{font-size:.82rem;color:var(--muted);}
-.upill{display:inline-flex;align-items:center;gap:7px;font-size:.72rem;color:var(--muted);white-space:nowrap;margin-top:4px;}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2.5s infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.kpi-strip{display:grid;gap:0;border:1px solid var(--bdr);border-radius:6px;overflow:hidden;margin-bottom:2rem;}
-.kpi{padding:14px 18px 12px;border-right:1px solid var(--bdr);background:var(--bg);}
-.kpi:last-child{border-right:none;}
-.kpi-lbl{font-size:.63rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
-.kpi-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.kpi-val{font-family:'Libre Baskerville',serif;font-size:2rem;font-weight:700;line-height:1;color:var(--txt);}
-.kpi-val.zero{color:var(--muted2);}
-.c-red{border-top:3px solid var(--red)!important;}.c-ora{border-top:3px solid var(--orange)!important;}
-.c-red2{border-top:3px solid #ef4444!important;}.c-grn{border-top:3px solid var(--green)!important;}
-.c-yel{border-top:3px solid #b7950b!important;}.c-blu{border-top:3px solid var(--blue)!important;}
-.c-mut{border-top:3px solid var(--bdr2)!important;}
-.chart-section{margin-bottom:2rem;}
-.section-title{font-family:'Libre Baskerville',serif;font-size:1.05rem;font-weight:700;color:var(--txt);margin-bottom:3px;}
-.section-sub{font-size:.76rem;color:var(--muted);margin-bottom:1rem;}
-.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
-.chart-col{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;padding:18px 20px;}
-.chart-col-title{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.chart-col-title span{display:inline-block;width:8px;height:8px;border-radius:50%;}
-.hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
-.hbar-lbl{font-size:.72rem;font-weight:500;color:var(--txt2);width:80px;text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.hbar-date{font-size:.6rem;color:var(--muted);display:block;font-weight:400;}
-.hbar-track{flex:1;height:20px;background:var(--bg3);border-radius:3px;overflow:hidden;}
-.hbar-fill{height:100%;border-radius:3px;display:flex;align-items:center;}
-.hbar-val{font-size:.68rem;font-weight:600;padding-left:8px;color:#fff;white-space:nowrap;}
-.sort-info{font-size:.68rem;color:var(--muted);padding:6px 0 10px;display:flex;align-items:center;gap:6px;}
-.sort-tag{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:3px;padding:1px 7px;font-size:.65rem;font-weight:600;color:var(--txt2);}
-.tbl-wrap{overflow-x:auto;border:1px solid var(--bdr);border-radius:6px;margin-bottom:1.2rem;}
-.tbl{width:100%;border-collapse:collapse;font-size:.79rem;}
-.tbl thead tr{background:var(--bg2);}
-.tbl th{padding:10px 13px;border-bottom:1px solid var(--bdr2);font-size:.61rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;text-align:left;white-space:nowrap;}
-.tbl th.sort-active{color:var(--txt);}
-.tbl th.sort-active::after{content:' ↓';color:var(--accent);}
-.tbl td{padding:9px 13px;border-bottom:1px solid var(--bdr);vertical-align:middle;white-space:nowrap;}
-.tbl tbody tr:hover td{background:var(--bg2);}
-.tbl tbody tr:last-child td{border-bottom:none;}
-.tbl tbody tr.top-row td{background:#fafaf8;}
-.grp-sep td{background:var(--bg2)!important;padding:6px 13px!important;font-size:.63rem!important;font-weight:600!important;color:var(--muted)!important;letter-spacing:.8px!important;text-transform:uppercase!important;border-top:1px solid var(--bdr2)!important;border-bottom:1px solid var(--bdr2)!important;}
-.rname{font-weight:600;font-size:.85rem;color:var(--txt);}
-.rsub{font-size:.62rem;color:var(--muted);}
-.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.63rem;font-weight:600;white-space:nowrap;text-transform:uppercase;background:var(--bg3);color:var(--txt2);border:1px solid var(--bdr2);}
-.b-urg{background:var(--red-lt);color:var(--red);border-color:#f5c6c6;}
-.b-atn{background:#fef3e2;color:var(--orange);border-color:#f5d9b0;}
-.b-opp{background:var(--green-lt);color:var(--green);border-color:#95d5b2;}
-.spark{display:inline-flex;gap:2px;align-items:flex-end;height:22px;vertical-align:middle;}
-.sb{width:6px;border-radius:1px 1px 0 0;background:var(--bdr2);}
-.su{background:#74c69d;}.sd{background:#f5a0a0;}
-.su.sl{background:var(--green);}.sd.sl{background:var(--red);}
-.occ-row{display:flex;align-items:center;gap:7px;}
-.occ-track{width:48px;height:4px;background:var(--bg3);border-radius:2px;}
-.occ-fill{height:100%;border-radius:2px;}
-.om{font-size:.77rem;font-weight:600;}
-.ng{color:var(--green);font-size:.79rem;font-weight:600;}
-.nr{color:var(--red);font-size:.79rem;font-weight:600;}
-.nm{color:var(--muted);font-size:.79rem;}
-.nt{color:var(--txt2);font-size:.79rem;}
-.no{color:var(--orange);font-size:.79rem;font-weight:600;}
-.sinal-tag{display:inline-flex;align-items:center;gap:5px;font-size:.71rem;font-weight:500;color:var(--txt2);}
-.sinal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.score-wrap{display:flex;align-items:center;gap:5px;}
-.score-track{width:38px;height:3px;background:var(--bg3);border-radius:2px;}
-.score-fill{height:100%;border-radius:2px;background:var(--accent);}
-.score-val{font-size:.67rem;color:var(--muted);}
-.sb-label{font-size:.63rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:.8rem 0 .3rem;}
-.footer{display:flex;justify-content:space-between;align-items:center;padding-top:1rem;border-top:1px solid var(--bdr);margin-top:.5rem;}
-.ftxt{font-size:.67rem;color:var(--muted);}
-/* banner de acionamento */
-.acion-banner{display:flex;align-items:center;justify-content:space-between;
-  background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;
-  padding:10px 16px;margin:1rem 0 .5rem;}
-.acion-banner-warn{background:#fff7ed;border-color:#fed7aa;}
-.acion-txt{font-size:.82rem;color:#2d6a4f;font-weight:600;}
-.acion-txt-warn{color:#92400e;}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body,
+[data-testid="stAppViewContainer"],
+[data-testid="stAppViewBlockContainer"],
+section[data-testid="stMain"] > div {
+  background: var(--bg) !important;
+  color: var(--txt) !important;
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+[data-testid="stSidebar"] {
+  background: var(--bg2) !important;
+  border-right: 1px solid var(--bdr) !important;
+}
+[data-testid="stSidebar"] * { color: var(--txt) !important; font-family: 'DM Sans', sans-serif !important; }
+
+.block-container { padding: 2.5rem 3rem !important; max-width: 100% !important; }
+hr { border: none; border-top: 1px solid var(--bdr) !important; margin: 1.2rem 0; }
+
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bdr2); border-radius: 2px; }
+
+/* ── INPUTS ───────────────────────────────────── */
+[data-testid="stTextInput"] input {
+  background: var(--bg) !important;
+  border: 1px solid var(--bdr2) !important;
+  border-radius: 3px !important;
+  color: var(--txt) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: .83rem !important;
+}
+[data-testid="stTextInput"] input:focus {
+  border-color: var(--ink) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ── BUTTONS ──────────────────────────────────── */
+[data-testid="stButton"] > button {
+  background: transparent !important;
+  border: 1px solid var(--bdr2) !important;
+  color: var(--muted) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: .75rem !important;
+  font-weight: 500 !important;
+  border-radius: 3px !important;
+  padding: 5px 14px !important;
+  letter-spacing: .2px !important;
+  transition: all .1s !important;
+  white-space: nowrap !important;
+}
+[data-testid="stButton"] > button:hover {
+  border-color: var(--ink) !important;
+  color: var(--ink) !important;
+  background: var(--bg3) !important;
+}
+[data-testid="stButton"] > button[kind="primary"] {
+  background: var(--ink) !important;
+  color: var(--bg) !important;
+  border-color: var(--ink) !important;
+  font-weight: 600 !important;
+}
+[data-testid="stButton"] > button[kind="primary"]:hover {
+  background: #333 !important;
+  color: #fff !important;
+}
+
+/* ── MULTISELECT ──────────────────────────────── */
+[data-testid="stMultiSelect"] [data-baseweb="select"] > div {
+  background: var(--bg) !important;
+  border: 1px solid var(--bdr2) !important;
+  border-radius: 3px !important;
+  min-height: 34px !important;
+  box-shadow: none !important;
+}
+[data-testid="stMultiSelect"] [data-baseweb="select"] > div:focus-within {
+  border-color: var(--ink) !important;
+  box-shadow: none !important;
+}
+[data-baseweb="tag"] {
+  background: var(--bg3) !important;
+  border: 1px solid var(--bdr2) !important;
+  border-radius: 2px !important;
+  padding: 1px 6px !important;
+  height: 20px !important;
+}
+[data-baseweb="tag"] span:first-child {
+  color: var(--txt2) !important;
+  font-size: .71rem !important;
+  font-weight: 500 !important;
+}
+[data-baseweb="popover"] [data-baseweb="menu"] {
+  background: var(--bg) !important;
+  border: 1px solid var(--bdr2) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.1) !important;
+}
+[data-baseweb="option"] {
+  background: var(--bg) !important;
+  font-size: .78rem !important;
+  color: var(--txt2) !important;
+  padding: 7px 12px !important;
+}
+[data-baseweb="option"]:hover,
+[aria-selected="true"][data-baseweb="option"] { background: var(--bg2) !important; }
+
+/* ── SLIDER ───────────────────────────────────── */
+[data-testid="stSlider"] [role="slider"] {
+  background: var(--ink) !important;
+  border: 2px solid var(--bg) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,.2) !important;
+  width: 13px !important;
+  height: 13px !important;
+}
+[data-testid="stSlider"] [data-testid="stTickBarMin"],
+[data-testid="stSlider"] [data-testid="stTickBarMax"] {
+  font-size: .68rem !important;
+  color: var(--muted) !important;
+}
+
+/* ── CHECKBOX ─────────────────────────────────── */
+[data-testid="stCheckbox"] label {
+  font-size: .8rem !important;
+  color: var(--txt2) !important;
+  font-weight: 400 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+}
+[data-testid="stCheckbox"] [data-baseweb="checkbox"] div {
+  border-color: var(--bdr2) !important;
+  border-radius: 2px !important;
+  background: var(--bg) !important;
+  width: 15px !important;
+  height: 15px !important;
+  flex-shrink: 0 !important;
+}
+[data-testid="stCheckbox"] [aria-checked="true"] div {
+  background: var(--ink) !important;
+  border-color: var(--ink) !important;
+}
+
+/* ── TABS ─────────────────────────────────────── */
+[data-testid="stTabs"] [data-baseweb="tab-list"] {
+  background: transparent !important;
+  border-bottom: 1px solid var(--bdr) !important;
+  gap: 0 !important;
+}
+[data-testid="stTabs"] [data-baseweb="tab"] {
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: .82rem !important;
+  font-weight: 400 !important;
+  border: none !important;
+  border-bottom: 1.5px solid transparent !important;
+  padding: 8px 20px 10px !important;
+  margin-bottom: -1px !important;
+  letter-spacing: .1px !important;
+}
+[data-testid="stTabs"] [data-baseweb="tab"]:hover { color: var(--txt) !important; }
+[data-testid="stTabs"] [aria-selected="true"][data-baseweb="tab"] {
+  color: var(--ink) !important;
+  border-bottom-color: var(--ink) !important;
+  font-weight: 600 !important;
+}
+[data-testid="stTabs"] [data-baseweb="tab-highlight"] { display: none !important; }
+[data-testid="stTabs"] [data-baseweb="tab-border"]    { display: none !important; }
+
+/* ── PAGE HEADER ──────────────────────────────── */
+.pg-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 1.6rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--bdr);
+}
+.pg-eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .65rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.pg-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.2rem;
+  font-weight: 400;
+  letter-spacing: -.5px;
+  color: var(--ink);
+  line-height: 1;
+}
+.pg-sub { font-size: .8rem; color: var(--muted); margin-top: 6px; font-weight: 300; }
+.upill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .68rem;
+  color: var(--muted);
+  white-space: nowrap;
+  letter-spacing: .2px;
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); display: inline-block;
+  animation: pulse 3s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── KPI STRIP ────────────────────────────────── */
+.kpi-strip {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--bdr);
+  border-top: 2px solid var(--ink);
+  border-radius: 0 0 4px 4px;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+}
+.kpi {
+  padding: 16px 20px 14px;
+  border-right: 1px solid var(--bdr);
+  background: var(--bg);
+}
+.kpi:last-child { border-right: none; }
+.kpi-lbl {
+  font-size: .6rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 8px;
+}
+.kpi-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink);
+}
+.kpi-val.zero { color: var(--muted2); }
+.kpi-val.positive { color: var(--green); }
+.kpi-val.negative { color: var(--red); }
+
+/* ── CHART ────────────────────────────────────── */
+.chart-section { margin-bottom: 2.5rem; }
+.section-label {
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.section-sub { font-size: .75rem; color: var(--muted); margin-bottom: 1.2rem; font-weight: 300; }
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--bdr); border: 1px solid var(--bdr); border-radius: 4px; overflow: hidden; }
+.chart-col { background: var(--bg2); padding: 20px 22px; }
+.chart-col-title {
+  font-size: .6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chart-col-title span { display: inline-block; width: 12px; height: 2px; border-radius: 1px; }
+.hbar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.hbar-lbl {
+  font-size: .71rem;
+  font-weight: 500;
+  color: var(--txt2);
+  width: 80px;
+  text-align: right;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hbar-track { flex: 1; height: 18px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.hbar-fill { height: 100%; border-radius: 2px; display: flex; align-items: center; }
+.hbar-val { font-size: .67rem; font-weight: 600; padding-left: 8px; color: #fff; white-space: nowrap; }
+
+/* ── SORT INFO ────────────────────────────────── */
+.sort-info {
+  font-size: .67rem;
+  color: var(--muted);
+  padding: 8px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: .1px;
+}
+.sort-tag {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg3);
+  border: 1px solid var(--bdr2);
+  border-radius: 2px;
+  padding: 1px 7px;
+  font-size: .63rem;
+  font-weight: 600;
+  color: var(--txt2);
+  letter-spacing: .3px;
+}
+
+/* ── TABLE ────────────────────────────────────── */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--bdr); border-top: 2px solid var(--ink); border-radius: 0 0 4px 4px; margin-bottom: 1.5rem; }
+.tbl { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.tbl thead tr { background: var(--bg2); }
+.tbl th {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--bdr2);
+  font-size: .59rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  text-align: left;
+  white-space: nowrap;
+}
+.tbl th.col-active { color: var(--ink); }
+.tbl th.col-active::after { content: ' ↓'; }
+.tbl td { padding: 9px 14px; border-bottom: 1px solid var(--bdr); vertical-align: middle; white-space: nowrap; }
+.tbl tbody tr:hover td { background: var(--bg2); }
+.tbl tbody tr:last-child td { border-bottom: none; }
+
+.rname { font-weight: 600; font-size: .83rem; color: var(--ink); letter-spacing: -.2px; }
+.rsub  { font-size: .62rem; color: var(--muted); font-weight: 300; }
+
+.occ-row   { display: flex; align-items: center; gap: 8px; }
+.occ-track { width: 46px; height: 3px; background: var(--bg3); border-radius: 2px; }
+.occ-fill  { height: 100%; border-radius: 2px; }
+.om { font-size: .76rem; font-weight: 600; }
+
+.ng  { color: var(--green); font-size: .78rem; font-weight: 600; }
+.nr  { color: var(--red);   font-size: .78rem; font-weight: 600; }
+.nm  { color: var(--muted); font-size: .78rem; font-weight: 300; }
+.nt  { color: var(--txt2);  font-size: .78rem; }
+.no  { color: var(--amber); font-size: .78rem; font-weight: 600; }
+
+/* ── EDITOR HEADER ────────────────────────────── */
+.editor-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin: 1.8rem 0 .6rem;
+  padding-bottom: .8rem;
+  border-bottom: 1px solid var(--bdr);
+}
+.editor-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.editor-sub { font-size: .75rem; color: var(--muted); font-weight: 300; }
+
+/* ── BANNER ───────────────────────────────────── */
+.acion-banner {
+  display: flex;
+  align-items: center;
+  background: var(--green-lt);
+  border: 1px solid #b6dfc9;
+  border-left: 3px solid var(--green);
+  border-radius: 3px;
+  padding: 10px 16px;
+  margin: 1rem 0 .6rem;
+}
+.acion-txt { font-size: .8rem; color: var(--green); font-weight: 500; }
+
+.warn-banner {
+  background: var(--amber-lt);
+  border: 1px solid #e8d0a0;
+  border-left: 3px solid var(--amber);
+  border-radius: 3px;
+  padding: 8px 14px;
+  margin-bottom: .8rem;
+  font-size: .78rem;
+  color: var(--amber);
+  font-weight: 400;
+}
+
+/* ── SIDEBAR ──────────────────────────────────── */
+.sb-section {
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin: 1.2rem 0 .5rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--bdr);
+}
+.sb-label {
+  font-size: .63rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin: .7rem 0 .25rem;
+}
+
+/* ── FOOTER ───────────────────────────────────── */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  margin-top: .5rem;
+  border-top: 1px solid var(--bdr);
+}
+.ftxt { font-size: .65rem; color: var(--muted2); letter-spacing: .1px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -300,14 +633,14 @@ def turno_badge(t):
 
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown('<div style="padding:14px 0 6px"><div class="sb-label">Tiradentes · URL</div></div>',
+    st.markdown('<div class="sb-section">Fontes de dados</div><div class="sb-label">Tiradentes · URL</div>',
                 unsafe_allow_html=True)
     url_curva = st.text_input("", value=GITHUB_RAW_CURVA, label_visibility="collapsed", key="url_curva")
 
-    st.markdown('<div class="sb-label" style="margin-top:8px">Feriado Maio · URL</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-label" style="margin-top:10px">Feriado Maio · URL</div>', unsafe_allow_html=True)
     url_curva2 = st.text_input("", value=GITHUB_RAW_CURVA2, label_visibility="collapsed", key="url_curva2")
 
-    if st.button("↻  Recarregar dados", use_container_width=True):
+    if st.button("Recarregar dados", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
@@ -316,7 +649,7 @@ with st.sidebar:
 
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab1, tab2 = st.tabs(["🎉  Tiradentes", "🎉  Feriado Maio"])
+tab1, tab2 = st.tabs(["Tiradentes", "Feriado Maio"])
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FUNÇÃO REUTILIZÁVEL — CURVA DE FERIADO + EDITOR DE PRICING
@@ -330,10 +663,11 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
     st.markdown(f"""
     <div class="pg-header">
       <div>
+        <div class="pg-eyebrow">Curva de Feriado</div>
         <div class="pg-title">{titulo}</div>
-        <div class="pg-sub">Comparativo de load factor · edite o preço desejado diretamente na tabela</div>
+        <div class="pg-sub">Comparativo de load factor — edite o preço desejado diretamente na tabela</div>
       </div>
-      <div class="upill"><span class="dot"></span>Atualizado em {agora_t} · via Databricks</div>
+      <div class="upill"><span class="live-dot"></span>Atualizado {agora_t} · via Databricks</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -352,18 +686,19 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
     rat_cls = "c-grn" if rat_med >= 1 else "c-red"
     rat_dot = "#2d6a4f" if rat_med >= 1 else "#c0392b"
 
+    ratio_cls_val = "positive" if rat_med >= 1 else "negative"
     st.markdown(f"""
     <div class="kpi-strip" style="grid-template-columns:repeat(5,1fr)">
-      <div class="kpi c-grn"><div class="kpi-lbl"><span class="kpi-dot" style="background:#2d6a4f"></span>LF Atual médio</div>
+      <div class="kpi"><div class="kpi-lbl">LF Atual médio</div>
         <div class="kpi-val">{lf_med:.0%}</div></div>
-      <div class="kpi c-blu"><div class="kpi-lbl"><span class="kpi-dot" style="background:#2c3e7a"></span>LF Referência</div>
+      <div class="kpi"><div class="kpi-lbl">LF Referência</div>
         <div class="kpi-val">{lf_ref:.0%}</div></div>
-      <div class="kpi {rat_cls}"><div class="kpi-lbl"><span class="kpi-dot" style="background:{rat_dot}"></span>Ratio médio</div>
-        <div class="kpi-val">{rat_med:.2f}</div></div>
-      <div class="kpi c-grn"><div class="kpi-lbl"><span class="kpi-dot" style="background:#2d6a4f"></span>Acima da ref.</div>
-        <div class="kpi-val">{acima}</div></div>
-      <div class="kpi c-red"><div class="kpi-lbl"><span class="kpi-dot" style="background:#c0392b"></span>Abaixo da ref.</div>
-        <div class="kpi-val">{abaixo}</div></div>
+      <div class="kpi"><div class="kpi-lbl">Ratio médio</div>
+        <div class="kpi-val {ratio_cls_val}">{rat_med:.2f}</div></div>
+      <div class="kpi"><div class="kpi-lbl">Acima da ref.</div>
+        <div class="kpi-val positive">{acima}</div></div>
+      <div class="kpi"><div class="kpi-lbl">Abaixo da ref.</div>
+        <div class="kpi-val negative">{abaixo}</div></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -398,13 +733,14 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
         )
     st.markdown(f"""
     <div class="chart-section">
-      <div class="section-title">LF Atual vs Referência — top rotas por ocupação</div>
-      <div class="section-sub">
-        <span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px">
-          <span style="width:10px;height:3px;background:#2d6a4f;border-radius:2px;display:inline-block"></span>LF Atual
+      <div class="section-label">Análise comparativa</div>
+      <div class="section-title">LF Atual vs Referência</div>
+      <div class="section-sub">Top rotas por ocupação &mdash;
+        <span style="display:inline-inline;margin-right:12px">
+          <span style="display:inline-block;width:10px;height:2px;background:#1e5c3a;vertical-align:middle;margin-right:4px"></span>LF Atual
         </span>
-        <span style="display:inline-flex;align-items:center;gap:5px">
-          <span style="width:10px;height:3px;background:#9ab8d4;border-radius:2px;display:inline-block"></span>LF Referência
+        <span style="display:inline-inline">
+          <span style="display:inline-block;width:10px;height:2px;background:#9ab8d4;vertical-align:middle;margin-right:4px"></span>LF Referência
         </span>
       </div>
       <div class="chart-col" style="margin-top:12px;max-width:700px">{chart_rows}</div>
@@ -448,25 +784,22 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
         col_oc1, col_oc2 = st.columns([5, 1])
         with col_oc1:
             st.markdown(f"""
-            <div style="padding:8px 14px;background:#fff7ed;border:1px solid #fed7aa;
-                        border-radius:6px;margin-bottom:.8rem;font-size:.8rem;color:#92400e">
+            <div class="warn-banner">
               <strong>{n_ocultas}</strong> linha{"s" if n_ocultas>1 else ""} já enviada{"s" if n_ocultas>1 else ""} oculta{"s" if n_ocultas>1 else ""}.
-              Clique em "Mostrar todas" para reexibi-las.
+              Clique em 'Mostrar todas' para reexibi-las.
             </div>
             """, unsafe_allow_html=True)
         with col_oc2:
-            if st.button("👁 Mostrar todas", key=f"{tab_key}_mostrar"):
+            if st.button("Mostrar todas", key=f"{tab_key}_mostrar"):
                 st.session_state[key_enviadas] = set()
                 st.rerun()
 
     # ── Editor de Pricing ──────────────────────────────────────────────────────
     st.markdown("""
-    <div style="margin:1.2rem 0 .4rem">
-      <div class="section-title" style="font-size:.95rem">Editor de Pricing</div>
-      <div class="section-sub">
-        Preencha <strong>✏️ Preço novo</strong> nas linhas que deseja alterar.
-        Desmarque <strong>✅ Incluir</strong> para ignorar uma linha.
-        Use <strong>Reset</strong> para limpar tudo.
+    <div class="editor-header">
+      <div>
+        <div class="editor-title">Editor de Pricing</div>
+        <div class="editor-sub">Preencha <strong>Preço novo</strong> nas linhas que deseja alterar — o mult é calculado automaticamente sobre o preço com flutuação. Desmarque <strong>Incluir</strong> para ignorar uma linha.</div>
       </div>
     </div>
     """, unsafe_allow_html=True)
@@ -499,7 +832,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
     df_show    = df_editor[show_cols].copy()
 
     col_config = {
-        "incluir":             st.column_config.CheckboxColumn("✅ Incluir", default=True),
+        "incluir":             st.column_config.CheckboxColumn("Incluir", default=True),
         "data_fmt":            st.column_config.TextColumn("Data",             disabled=True),
         "turno":               st.column_config.TextColumn("Turno",            disabled=True),
         "rota_principal":      st.column_config.TextColumn("Rota principal",   disabled=True),
@@ -520,8 +853,8 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
         "mult_final":          st.column_config.NumberColumn("Mult Final",     disabled=True, format="%.3fx"),
         "mult_flutuacao":      st.column_config.NumberColumn("Mult Flut.",     disabled=True, format="%.3fx"),
         "✏️ Preço novo": st.column_config.NumberColumn(
-            "✏️ Preço novo", min_value=0.0, format="R$ %.2f",
-            help="Digite o preço desejado — mult calculado sobre preco_com_flutuacao",
+            "Preco novo", min_value=0.0, format="R$ %.2f",
+            help="Digite o preço desejado — mult = preco_novo / preco_com_flutuacao",
         ),
     }
 
@@ -559,7 +892,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
         excl_txt = f" · {n_excluidas} ignorada{'s' if n_excluidas>1 else ''}" if n_excluidas > 0 else ""
         st.markdown(f"""
         <div class="acion-banner">
-          <span class="acion-txt">✅ {n_edit} linha{"s" if n_edit>1 else ""} no acionamento{excl_txt}</span>
+          <span class="acion-txt">{n_edit} linha{"s" if n_edit>1 else ""} no acionamento{excl_txt} — pronto para enviar</span>
         </div>
         """, unsafe_allow_html=True)
         st.dataframe(df_acionamento, use_container_width=True, hide_index=True)
@@ -569,7 +902,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
 
         with col_b1:
             if st.download_button(
-                label="⬇ Baixar CSV",
+                label="Baixar CSV",
                 data=csv_bytes,
                 file_name=f"pricing_{tab_key}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                 mime="text/csv",
@@ -582,7 +915,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
                 st.rerun()
 
         with col_b2:
-            if st.button("🚀 Enviar pro GitHub", use_container_width=True,
+            if st.button("Enviar pro GitHub", use_container_width=True,
                          type="primary", key=f"{tab_key}_push"):
                 gh_token = st.session_state.get(f"{tab_key}_gh_token", "")
                 if not gh_token:
@@ -607,24 +940,23 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
                         st.error(f"Erro {r_gh.status_code}: {r_gh.json().get('message')}")
 
         with col_b3:
-            if st.button("🔄 Reset edições", use_container_width=True, key=f"{tab_key}_reset"):
+            if st.button("Limpar edições", use_container_width=True, key=f"{tab_key}_reset"):
                 st.session_state[key_version] += 1
                 st.session_state[key_enviadas] = set()
                 st.rerun()
 
-        with st.expander("🔑 GitHub Token para envio"):
+        with st.expander("Token GitHub"):
             st.text_input("Token", type="password", key=f"{tab_key}_gh_token",
                           help="Necessário só para 'Enviar pro GitHub'. Fica apenas na sessão.")
     else:
         st.markdown("""
-        <div style="margin-top:.8rem;padding:10px 16px;background:var(--bg2);
-                    border:1px solid var(--bdr);border-radius:6px">
-          <span style="font-size:.82rem;color:var(--muted)">
-            Preencha <strong>✏️ Preço novo</strong> nas linhas que deseja alterar.
+        <div style="padding:10px 16px;background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;margin-top:.8rem">
+          <span style="font-size:.78rem;color:var(--muted);font-weight:300">
+            Preencha a coluna <strong style="font-weight:600;color:var(--txt2)">Preco novo</strong> nas linhas que deseja alterar para gerar o acionamento.
           </span>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("🔄 Reset edições", key=f"{tab_key}_reset_empty"):
+        if st.button("Limpar edições", key=f"{tab_key}_reset_empty"):
             st.session_state[key_version] += 1
             st.session_state[key_enviadas] = set()
             st.rerun()
