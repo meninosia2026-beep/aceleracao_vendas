@@ -389,8 +389,9 @@ def prep_curva(df: pd.DataFrame) -> pd.DataFrame:
 
     float_cols = [
         "occ_atual", "lf_pascoa_2026", "lf_atual", "ratio", "tkm_comp",
-        "preco_base", "preco_est_draft", "preco_com_sazonalidade", "mult_final", "price_cc",
-        "tkm_atual", "mult_flutuacao", "preco_com_flutuacao", "preco_staff"
+        "preco_base", "preco_est_draft", "preco_com_sazonalidade", "preco_mult_flutuacao",
+        "mult_final", "price_cc", "tkm_atual", "mult_flutuacao",
+        "preco_com_flutuacao", "preco_staff"
     ]
     for c in float_cols:
         if c in df.columns:
@@ -600,8 +601,9 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
     cols_editor = [
         "data", "turno", "rota_principal", "sentido", "antecedencia",
         "occ_atual", "pax", "vagas_restantes", "lf_atual", "lf_pascoa_2026", "ratio",
-        "tkm_atual", "tkm_comp", "price_cc", "preco_com_sazonalidade",
-        "preco_staff", "preco_com_flutuacao", "mult_final", "mult_flutuacao"
+        "tkm_atual", "tkm_comp", "price_cc",
+        "preco_com_sazonalidade", "preco_mult_flutuacao", "preco_staff",
+        "preco_com_flutuacao", "mult_final", "mult_flutuacao"
     ]
     cols_presentes = [c for c in cols_editor if c in df_cv_editor.columns]
     df_editor = df_cv_editor[cols_presentes].copy()
@@ -623,8 +625,9 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
     show_cols = [
         "incluir", "data_fmt", "turno", "rota_principal", "sentido", "antecedencia",
         "occ_pct", "pax", "vagas_restantes", "lf_a_fmt", "lf_r_fmt", "ratio_fmt",
-        "tkm_atual", "tkm_comp", "price_cc", "preco_com_sazonalidade",
-        "preco_staff", "preco_com_flutuacao", "mult_final", "mult_flutuacao", "✏️ Preço novo"
+        "tkm_atual", "tkm_comp", "price_cc",
+        "preco_com_sazonalidade", "preco_mult_flutuacao", "preco_staff",
+        "preco_com_flutuacao", "mult_final", "mult_flutuacao", "✏️ Preço novo"
     ]
     show_cols = [c for c in show_cols if c in df_editor.columns]
     df_show = df_editor[show_cols].copy()
@@ -646,6 +649,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
         "tkm_comp": st.column_config.NumberColumn("TKM Comp", disabled=True, format="R$ %.0f"),
         "price_cc": st.column_config.NumberColumn("Price CC", disabled=True, format="R$ %.0f"),
         "preco_com_sazonalidade": st.column_config.NumberColumn("Preço c/ sazon.", disabled=True, format="R$ %.2f"),
+        "preco_mult_flutuacao": st.column_config.NumberColumn("Preço mult. flut.", disabled=True, format="R$ %.2f"),
         "preco_staff": st.column_config.NumberColumn("Preço Staff", disabled=True, format="R$ %.2f"),
         "preco_com_flutuacao": st.column_config.NumberColumn("Preço c/ flut.", disabled=True, format="R$ %.2f"),
         "mult_final": st.column_config.NumberColumn("Mult Final", disabled=True, format="%.3fx"),
@@ -673,6 +677,12 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
     if not df_editado.empty:
         df_editado["_preco_sazon"] = df_cv_editor.loc[df_editado.index, "preco_com_sazonalidade"].values
 
+        df_editado["_preco_mult_flut"] = (
+            df_cv_editor.loc[df_editado.index, "preco_mult_flutuacao"].values
+            if "preco_mult_flutuacao" in df_cv_editor.columns
+            else None
+        )
+
         df_editado["_preco_flut"] = (
             df_cv_editor.loc[df_editado.index, "preco_com_flutuacao"].values
             if "preco_com_flutuacao" in df_cv_editor.columns
@@ -695,6 +705,7 @@ def render_curva(df_raw: pd.DataFrame, tab_key: str, titulo: str):
             "rota_principal": df_editado["rota_principal"].values,
             "sentido": df_editado["sentido"].values,
             "preco_com_sazonalidade": df_editado["_preco_sazon"].values,
+            "preco_mult_flutuacao": df_editado["_preco_mult_flut"].values,
             "preco_com_flutuacao": df_editado["_preco_flut"].values,
             "base_calculo_mult": df_editado["_base_calc"].values,
             "preco_novo": df_editado["✏️ Preço novo"].values,
